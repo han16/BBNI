@@ -21,7 +21,7 @@ installed from GitHub:
 ``` r
 
 # install.packages("devtools")
-devtools::install_github("anson-li8/BBNI")
+devtools::install_github("han16/BBNI")
 ```
 
 ## Example
@@ -59,7 +59,7 @@ dummy_data
 
 For a complete demonstration running the MCMC sampler and evaluating
 final convergence and overall network recovery, see the [Introduction to
-BBNI](https://anson-li8.github.io/BBNI/articles/Introduction_to_BBNI.html)
+BBNI](https://han16.github.io/BBNI/articles/Introduction_to_BBNI.html)
 vignette.
 
 ## Citation

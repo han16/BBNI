@@ -101,8 +101,8 @@ be recorded as binary (0/1) expression states.
 ## Running the MCMC sampler
 
 We next execute
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
-on the simulated data. The main arguments are:
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md) on
+the simulated data. The main arguments are:
 
 - `num_update` - total number of MCMC outer iterations.
 - `penalty` - structural-prior hyperparameter that penalizes graph
@@ -135,7 +135,7 @@ mcmc_results <- run_bbni(
 run_end <- Sys.time()
 ```
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 prints a diagnostic log for each node-level update, resulting in
 `num.node` \\\times\\ `num_update` lines in total. The summary with the
 essential values is printed below:
@@ -152,7 +152,7 @@ cat(
 
 ## Analyzing the output
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 returns a list containing the sampled path of the Markov chain:
 
 - `log_posterior` - numeric vector of log-posterior values stored after
@@ -407,7 +407,7 @@ Bayesian Boolean network framework to yeast cell-cycle expression data
 and compared the inferred relationships with a reference cell-cycle
 network. A package-level empirical example can follow the same
 structure: load a binary expression matrix, run
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md),
 examine trace behavior, summarize posterior edge probabilities, and
 interpret high-probability interactions in relation to existing
 biological knowledge.
@@ -419,11 +419,10 @@ biological knowledge.
 This vignette demonstrates the core `BBNI` workflow on simulated data.
 From here:
 
-- See
-  [`?run_bbni`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
-  [`?GenerateNetwork`](https://anson-li8.github.io/BBNI/reference/GenerateNetwork.md),
+- See [`?run_bbni`](https://han16.github.io/BBNI/reference/run_bbni.md),
+  [`?GenerateNetwork`](https://han16.github.io/BBNI/reference/GenerateNetwork.md),
   and
-  [`?GenerateSample`](https://anson-li8.github.io/BBNI/reference/GenerateSample.md)
+  [`?GenerateSample`](https://han16.github.io/BBNI/reference/GenerateSample.md)
   for function-level documentation.
 - This example runs 4000 iterations on a 20-node network. Larger
   networks, noisier data, or higher-precision posterior summaries may
