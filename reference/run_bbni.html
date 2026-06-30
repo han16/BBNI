@@ -114,7 +114,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span>  <span class="co"># 1. Define network parameters</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">235</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">num_nodes</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
@@ -147,20 +147,23 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span class="r-in"><span>    error <span class="op">=</span> <span class="va">error_matrix</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># 3. Run the MCMC sampler</span></span></span>
-<span class="r-in"><span>  <span class="va">mcmc_results</span> <span class="op">&lt;-</span> <span class="fu">run_bbni</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    GeneData <span class="op">=</span> <span class="va">dummy_data</span>,</span></span>
-<span class="r-in"><span>    num.node <span class="op">=</span> <span class="va">num_nodes</span>,</span></span>
-<span class="r-in"><span>    SampleSize <span class="op">=</span> <span class="va">sample_size</span>,</span></span>
-<span class="r-in"><span>    prior_para <span class="op">=</span> <span class="va">prior_para</span>,</span></span>
-<span class="r-in"><span>    num_update <span class="op">=</span> <span class="fl">100</span>, <span class="co"># Scaled down for example speed</span></span></span>
-<span class="r-in"><span>    penalty <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
-<span class="r-in"><span>    prop.ratio <span class="op">=</span> <span class="fl">0.1</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># 3. Run the MCMC sampler (silently)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/capture.output.html" class="external-link">capture.output</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">mcmc_results</span> <span class="op">&lt;-</span> <span class="fu">run_bbni</span><span class="op">(</span></span></span>
+<span class="r-in"><span>      GeneData <span class="op">=</span> <span class="va">dummy_data</span>,</span></span>
+<span class="r-in"><span>      num.node <span class="op">=</span> <span class="va">num_nodes</span>,</span></span>
+<span class="r-in"><span>     SampleSize <span class="op">=</span> <span class="va">sample_size</span>,</span></span>
+<span class="r-in"><span>      prior_para <span class="op">=</span> <span class="va">prior_para</span>,</span></span>
+<span class="r-in"><span>      num_update <span class="op">=</span> <span class="fl">100</span>, <span class="co"># Scaled down for example speed</span></span></span>
+<span class="r-in"><span>      penalty <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
+<span class="r-in"><span>      prop.ratio <span class="op">=</span> <span class="fl">0.1</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="co"># 4. Inspect results</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">$</span><span class="va">log_posterior</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -279.5854 -279.5854 -281.8880 -281.8880 -281.8880 -281.8880</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -169,7 +172,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Shengtong Han, Anson Li.</p>
+  <p>Developed by Anson Li, Shengtong Han.</p>
 </div>
 
 <div class="pkgdown-footer-right">

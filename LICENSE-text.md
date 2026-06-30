@@ -1,5 +1,5 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: Shengtong Han and Anson Li
-    ORGANIZATION: Shengtong Han and Anson Li
+    COPYRIGHT HOLDER: Anson Li and Shengtong Han
+    ORGANIZATION: Anson Li and Shengtong Han

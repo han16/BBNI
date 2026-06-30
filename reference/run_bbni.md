@@ -72,7 +72,7 @@ distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
 ## Examples
 
 ``` r
-if (FALSE) {
+# \donttest{
   # 1. Define network parameters
   set.seed(235)
   num_nodes <- 10
@@ -105,18 +105,21 @@ if (FALSE) {
     error = error_matrix
   )
 
-  # 3. Run the MCMC sampler
-  mcmc_results <- run_bbni(
-    GeneData = dummy_data,
-    num.node = num_nodes,
-    SampleSize = sample_size,
-    prior_para = prior_para,
-    num_update = 100, # Scaled down for example speed
-    penalty = 0.1,
-    prop.ratio = 0.1
-  )
+  # 3. Run the MCMC sampler (silently)
+  invisible(capture.output(
+    mcmc_results <- run_bbni(
+      GeneData = dummy_data,
+      num.node = num_nodes,
+     SampleSize = sample_size,
+      prior_para = prior_para,
+      num_update = 100, # Scaled down for example speed
+      penalty = 0.1,
+      prop.ratio = 0.1
+    )
+  ))
 
   # 4. Inspect results
   tail(mcmc_results$log_posterior)
-}
+#> [1] -279.5854 -279.5854 -281.8880 -281.8880 -281.8880 -281.8880
+# }
 ```
