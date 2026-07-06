@@ -11,7 +11,8 @@ run_bbni(
   prior_para,
   num_update,
   penalty,
-  prop.ratio
+  prop.ratio,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ run_bbni(
 \item{penalty}{A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}.}
 
 \item{prop.ratio}{A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution.}
+
+\item{verbose}{Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.}
 }
 \value{
 A list containing the full trajectory of the MCMC chain. Specifically, \code{networks} (a list of sampled transition function matrices) and \code{log_posterior} (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging.
@@ -76,17 +79,15 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
   )
 
   # 3. Run the MCMC sampler (silently)
-  invisible(capture.output(
-    mcmc_results <- run_bbni(
-      GeneData = dummy_data,
-      num.node = num_nodes,
-     SampleSize = sample_size,
-      prior_para = prior_para,
-      num_update = 100, # Scaled down for example speed
-      penalty = 0.1,
-      prop.ratio = 0.1
-    )
-  ))
+  mcmc_results <- run_bbni(
+    GeneData = dummy_data,
+    num.node = num_nodes,
+    SampleSize = sample_size,
+    prior_para = prior_para,
+    num_update = 100, # Scaled down for example speed
+    penalty = 0.1,
+    prop.ratio = 0.1
+  )
 
   # 4. Inspect results
   tail(mcmc_results$log_posterior)

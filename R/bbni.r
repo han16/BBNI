@@ -15,6 +15,7 @@
 #' @param num_update An integer representing the total number of MCMC iterations to perform.
 #' @param penalty A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}.
 #' @param prop.ratio A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution.
+#' @param verbose Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.
 #'
 #' @return A list containing the full trajectory of the MCMC chain. Specifically, `networks` (a list of sampled transition function matrices) and `log_posterior` (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging.
 #'
@@ -53,17 +54,15 @@
 #'   )
 #'
 #'   # 3. Run the MCMC sampler (silently)
-#'   invisible(capture.output(
-#'     mcmc_results <- run_bbni(
-#'       GeneData = dummy_data,
-#'       num.node = num_nodes,
-#'      SampleSize = sample_size,
-#'       prior_para = prior_para,
-#'       num_update = 100, # Scaled down for example speed
-#'       penalty = 0.1,
-#'       prop.ratio = 0.1
-#'     )
-#'   ))
+#'   mcmc_results <- run_bbni(
+#'     GeneData = dummy_data,
+#'     num.node = num_nodes,
+#'     SampleSize = sample_size,
+#'     prior_para = prior_para,
+#'     num_update = 100, # Scaled down for example speed
+#'     penalty = 0.1,
+#'     prop.ratio = 0.1
+#'   )
 #'
 #'   # 4. Inspect results
 #'   tail(mcmc_results$log_posterior)
@@ -72,7 +71,7 @@
 #' @importFrom stats runif
 #' @export
 run_bbni <- function(GeneData, num.node, SampleSize, prior_para,
-                     num_update, penalty, prop.ratio) {
+                     num_update, penalty, prop.ratio, verbose = FALSE) {
   Candidate <- ProposalConstruction(GeneData, SampleSize) # create the proposal for generated data
   prior.triplet <- Candidate[[1]]
   prior.pairwise <- Candidate[[2]]
@@ -118,10 +117,12 @@ run_bbni <- function(GeneData, num.node, SampleSize, prior_para,
 
     update_order <- sample.int(num.node, num.node, replace = FALSE)
     for (k in seq_along(update_order)) { #   consider the updating node g_k
-      cat("ii", ii, "th iteration is running", "\n")
-      cat("n=", n, "\n")
+      if (verbose) {
+        cat("ii", ii, "th iteration is running", "\n")
+        cat("n=", n, "\n")
+        cat("all_logpost=", all_logpost[iter], "\n")
+      }
       old <- n
-      cat("all_logpost=", all_logpost[iter], "\n")
       current_incid_matrix <- Incidence_Matrix[[iter]]
       current_ances_matrix <- Ancestor_Matrix[[iter]]
       current_trans_func_matrix <- Trans_Func_Matrix[[iter]]

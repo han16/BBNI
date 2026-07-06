@@ -9,13 +9,7 @@ Authors@R: c(
            email = "shengtong.han@marquette.edu",
            role = "aut")
     )
-Description: Implements a fully Bayesian Markov chain Monte Carlo (MCMC)
-    approach for inferring the topology and Boolean logic transition
-    functions of gene regulatory networks from noisy, binary time-series
-    expression data. Network structure and Boolean rules are sampled
-    jointly from their posterior distribution, providing principled
-    uncertainty quantification rather than a single point estimate.
-    Method described in Han et al. (2014) <doi:10.1371/journal.pone.0115806>.
+Description: Implements a fully Bayesian Markov chain Monte Carlo (MCMC) approach for inferring the topology and Boolean logic transition functions of gene regulatory networks from noisy, binary time-series expression data. Network structure and Boolean rules are sampled jointly from their posterior distribution, providing principled uncertainty quantification rather than a single point estimate. Method described in Han et al. (2014) <doi:10.1371/journal.pone.0115806>.
 Depends: 
     R (>= 4.1.0)
 License: BSD_3_clause + file LICENSE
