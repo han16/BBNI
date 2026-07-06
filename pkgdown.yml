@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   Introduction_to_BBNI: Introduction_to_BBNI.html
-last_built: 2026-07-06T15:11Z
+last_built: 2026-07-06T15:15Z
 urls:
   reference: https://han16.github.io/BBNI/reference
   article: https://han16.github.io/BBNI/articles
