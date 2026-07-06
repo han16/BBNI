@@ -20,7 +20,8 @@ run_bbni(
   prior_para,
   num_update,
   penalty,
-  prop.ratio
+  prop.ratio,
+  verbose = FALSE
 )
 ```
 
@@ -60,6 +61,11 @@ run_bbni(
   A numeric probability threshold used to decide whether to sample a
   move from the empirical proposal distribution or a uniform random
   distribution.
+
+- verbose:
+
+  Logical. If TRUE, prints verbose MCMC iteration progress to the
+  console. Default is FALSE.
 
 ## Value
 
@@ -106,17 +112,15 @@ distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
   )
 
   # 3. Run the MCMC sampler (silently)
-  invisible(capture.output(
-    mcmc_results <- run_bbni(
-      GeneData = dummy_data,
-      num.node = num_nodes,
-     SampleSize = sample_size,
-      prior_para = prior_para,
-      num_update = 100, # Scaled down for example speed
-      penalty = 0.1,
-      prop.ratio = 0.1
-    )
-  ))
+  mcmc_results <- run_bbni(
+    GeneData = dummy_data,
+    num.node = num_nodes,
+    SampleSize = sample_size,
+    prior_para = prior_para,
+    num_update = 100, # Scaled down for example speed
+    penalty = 0.1,
+    prop.ratio = 0.1
+  )
 
   # 4. Inspect results
   tail(mcmc_results$log_posterior)
