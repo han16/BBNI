@@ -15,8 +15,14 @@ estimate.
 
 ## Installation
 
-BBNI is not currently available on CRAN. The development version can be
-installed from GitHub:
+Install the stable version from CRAN:
+
+``` r
+
+install.packages("BBNI")
+```
+
+The development version can be installed from GitHub:
 
 ``` r
 

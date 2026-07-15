@@ -2,6 +2,8 @@
 
 ## BBNI 0.1.1
 
+CRAN release: 2026-07-15
+
 - Rewrote documentation, vignette, and README for clarity
 - Reformatted code for readability
 - Removed unused/dead code/comments
