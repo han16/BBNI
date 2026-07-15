@@ -4,18 +4,24 @@
 \alias{GenerateSample}
 \title{Simulate Time-Series Observation Dataset}
 \usage{
-GenerateSample(trans_matrix, num.node, SampleSize, para, error)
+GenerateSample(
+  trans_matrix,
+  SampleSize = 50,
+  num.node = nrow(trans_matrix),
+  para = rep(0.5, nrow(trans_matrix)),
+  error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize)
+)
 }
 \arguments{
 \item{trans_matrix}{A square matrix combining the network topology \eqn{T}{T} and integer-coded Boolean logic functions \eqn{F}{F} assigned to each directed edge.}
 
-\item{num.node}{An integer representing the total number of network nodes.}
+\item{SampleSize}{An integer representing the total number of time points to simulate. Defaults to 50 if not specified.}
 
-\item{SampleSize}{An integer representing the total number of time points to simulate.}
+\item{num.node}{An integer representing the total number of network nodes. Defaults to \code{nrow(trans_matrix)} if not specified.}
 
-\item{para}{A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials.}
+\item{para}{A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials. Defaults to a \code{rep(0.5, nrow(trans_matrix))} if not specified.}
 
-\item{error}{A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise.}
+\item{error}{A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise. Defaults to a zero matrix of size \code{nrow(trans_matrix) x SampleSize} if not specified (no noise).}
 }
 \value{
 A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent sequential points in time.

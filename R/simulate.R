@@ -61,10 +61,10 @@ GenerateNetwork <- function(num.node) {
 #' noise expected by the model.
 #'
 #' @param trans_matrix A square matrix combining the network topology \eqn{T}{T} and integer-coded Boolean logic functions \eqn{F}{F} assigned to each directed edge.
-#' @param num.node An integer representing the total number of network nodes.
-#' @param SampleSize An integer representing the total number of time points to simulate.
-#' @param para A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials.
-#' @param error A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise.
+#' @param SampleSize An integer representing the total number of time points to simulate. Defaults to 50 if not specified.
+#' @param num.node An integer representing the total number of network nodes. Defaults to \code{nrow(trans_matrix)} if not specified.
+#' @param para A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials. Defaults to a \code{rep(0.5, nrow(trans_matrix))} if not specified.
+#' @param error A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise. Defaults to a zero matrix of size \code{nrow(trans_matrix) x SampleSize} if not specified (no noise).
 #'
 #' @return A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent sequential points in time.
 #'
@@ -91,7 +91,7 @@ GenerateNetwork <- function(num.node) {
 #'
 #' @importFrom bitops bitXor bitAnd bitOr
 #' @export
-GenerateSample <- function(trans_matrix, num.node, SampleSize, para, error) {
+GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_matrix), para = rep(0.5, nrow(trans_matrix)), error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize)) {
   node_ances <- matrix(nrow = num.node, ncol = 2)
   GeneData <- matrix(0, nrow = num.node, ncol = SampleSize)
   incid_matrix <- trans_matrix

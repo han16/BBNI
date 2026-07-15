@@ -2,9 +2,13 @@
 
 export(GenerateNetwork)
 export(GenerateSample)
+export(plot_bbni)
+export(plot_trace)
 export(run_bbni)
 importFrom(bitops,bitAnd)
 importFrom(bitops,bitOr)
 importFrom(bitops,bitXor)
+importFrom(igraph,graph_from_adjacency_matrix)
+importFrom(igraph,plot.igraph)
 importFrom(stats,rbinom)
 importFrom(stats,runif)

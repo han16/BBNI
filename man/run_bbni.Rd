@@ -6,29 +6,29 @@
 \usage{
 run_bbni(
   GeneData,
-  num.node,
-  SampleSize,
-  prior_para,
-  num_update,
-  penalty,
-  prop.ratio,
+  num.node = nrow(GeneData),
+  SampleSize = ncol(GeneData),
+  prior_para = NULL,
+  num_update = 4000,
+  penalty = 0.1,
+  prop.ratio = 0.5,
   verbose = FALSE
 )
 }
 \arguments{
 \item{GeneData}{A binary empirical observation matrix of the binary expression data (\eqn{G}{G}).}
 
-\item{num.node}{An integer representing the total number of network nodes.}
+\item{num.node}{An integer representing the total number of network nodes. Defaults to \code{nrow(GeneData)} if not specified.)}
 
-\item{SampleSize}{An integer representing the total number of time points in the dataset.}
+\item{SampleSize}{An integer representing the total number of time points in the dataset. Defaults to \code{ncol(GeneData)} if not specified.}
 
-\item{prior_para}{A matrix of Beta prior hyperparameters \eqn{\alpha}{\alpha} and \eqn{\beta}{\beta} for root node probabilities and the global noise parameter \eqn{e}{e}.}
+\item{prior_para}{A matrix of Beta prior hyperparameters \eqn{\alpha}{\alpha} and \eqn{\beta}{\beta} for root node probabilities and the global noise parameter \eqn{e}{e}. Defaults to a flat prior if not specified.}
 
-\item{num_update}{An integer representing the total number of MCMC iterations to perform.}
+\item{num_update}{An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.}
 
-\item{penalty}{A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}.}
+\item{penalty}{A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}. Defaults to 0.1 if not specified.}
 
-\item{prop.ratio}{A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution.}
+\item{prop.ratio}{A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution. Defaults to 0.5 if not specified.}
 
 \item{verbose}{Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.}
 }
