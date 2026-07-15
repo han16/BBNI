@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/han16/BBNI/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/han16/BBNI/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/BBNI)](https://CRAN.R-project.org/package=BBNI)
 <!-- badges: end -->
 
 BBNI is a Bayesian approach to Boolean gene regulatory network inference
@@ -23,8 +25,13 @@ estimate.
 
 ## Installation
 
-BBNI is not currently available on CRAN. The development version can be
-installed from GitHub:
+Install the stable version from CRAN:
+
+``` r
+install.packages("BBNI")
+```
+
+The development version can be installed from GitHub:
 
 ``` r
 # install.packages("devtools")
