@@ -15,12 +15,12 @@ Metropolis-Hastings acceptance threshold using log-posterior values.
 ``` r
 run_bbni(
   GeneData,
-  num.node,
-  SampleSize,
-  prior_para,
-  num_update,
-  penalty,
-  prop.ratio,
+  num.node = nrow(GeneData),
+  SampleSize = ncol(GeneData),
+  prior_para = NULL,
+  num_update = 4000,
+  penalty = 0.1,
+  prop.ratio = 0.5,
   verbose = FALSE
 )
 ```
@@ -34,33 +34,36 @@ run_bbni(
 
 - num.node:
 
-  An integer representing the total number of network nodes.
+  An integer representing the total number of network nodes. Defaults to
+  `nrow(GeneData)` if not specified.)
 
 - SampleSize:
 
   An integer representing the total number of time points in the
-  dataset.
+  dataset. Defaults to `ncol(GeneData)` if not specified.
 
 - prior_para:
 
   A matrix of Beta prior hyperparameters \\\alpha\\ and \\\beta\\ for
-  root node probabilities and the global noise parameter \\e\\.
+  root node probabilities and the global noise parameter \\e\\. Defaults
+  to a flat prior if not specified.
 
 - num_update:
 
   An integer representing the total number of MCMC iterations to
-  perform.
+  perform. Defaults to 4000 if not specified.
 
 - penalty:
 
   A numeric value representing the structural prior probability per edge
-  used to penalize network complexity \\P(T)\\.
+  used to penalize network complexity \\P(T)\\. Defaults to 0.1 if not
+  specified.
 
 - prop.ratio:
 
   A numeric probability threshold used to decide whether to sample a
   move from the empirical proposal distribution or a uniform random
-  distribution.
+  distribution. Defaults to 0.5 if not specified.
 
 - verbose:
 

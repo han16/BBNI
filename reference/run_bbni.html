@@ -66,12 +66,12 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">run_bbni</span><span class="op">(</span></span>
 <span>  <span class="va">GeneData</span>,</span>
-<span>  <span class="va">num.node</span>,</span>
-<span>  <span class="va">SampleSize</span>,</span>
-<span>  <span class="va">prior_para</span>,</span>
-<span>  <span class="va">num_update</span>,</span>
-<span>  <span class="va">penalty</span>,</span>
-<span>  <span class="va">prop.ratio</span>,</span>
+<span>  num.node <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">GeneData</span><span class="op">)</span>,</span>
+<span>  SampleSize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">GeneData</span><span class="op">)</span>,</span>
+<span>  prior_para <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  num_update <span class="op">=</span> <span class="fl">4000</span>,</span>
+<span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  prop.ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -85,27 +85,27 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dt id="arg-num-node">num.node<a class="anchor" aria-label="anchor" href="#arg-num-node"></a></dt>
-<dd><p>An integer representing the total number of network nodes.</p></dd>
+<dd><p>An integer representing the total number of network nodes. Defaults to <code>nrow(GeneData)</code> if not specified.)</p></dd>
 
 
 <dt id="arg-samplesize">SampleSize<a class="anchor" aria-label="anchor" href="#arg-samplesize"></a></dt>
-<dd><p>An integer representing the total number of time points in the dataset.</p></dd>
+<dd><p>An integer representing the total number of time points in the dataset. Defaults to <code>ncol(GeneData)</code> if not specified.</p></dd>
 
 
 <dt id="arg-prior-para">prior_para<a class="anchor" aria-label="anchor" href="#arg-prior-para"></a></dt>
-<dd><p>A matrix of Beta prior hyperparameters \(\alpha\) and \(\beta\) for root node probabilities and the global noise parameter \(e\).</p></dd>
+<dd><p>A matrix of Beta prior hyperparameters \(\alpha\) and \(\beta\) for root node probabilities and the global noise parameter \(e\). Defaults to a flat prior if not specified.</p></dd>
 
 
 <dt id="arg-num-update">num_update<a class="anchor" aria-label="anchor" href="#arg-num-update"></a></dt>
-<dd><p>An integer representing the total number of MCMC iterations to perform.</p></dd>
+<dd><p>An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.</p></dd>
 
 
 <dt id="arg-penalty">penalty<a class="anchor" aria-label="anchor" href="#arg-penalty"></a></dt>
-<dd><p>A numeric value representing the structural prior probability per edge used to penalize network complexity \(P(T)\).</p></dd>
+<dd><p>A numeric value representing the structural prior probability per edge used to penalize network complexity \(P(T)\). Defaults to 0.1 if not specified.</p></dd>
 
 
 <dt id="arg-prop-ratio">prop.ratio<a class="anchor" aria-label="anchor" href="#arg-prop-ratio"></a></dt>
-<dd><p>A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution.</p></dd>
+<dd><p>A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution. Defaults to 0.5 if not specified.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

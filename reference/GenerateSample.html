@@ -61,7 +61,13 @@ noise expected by the model.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">GenerateSample</span><span class="op">(</span><span class="va">trans_matrix</span>, <span class="va">num.node</span>, <span class="va">SampleSize</span>, <span class="va">para</span>, <span class="va">error</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">GenerateSample</span><span class="op">(</span></span>
+<span>  <span class="va">trans_matrix</span>,</span>
+<span>  SampleSize <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  num.node <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">trans_matrix</span><span class="op">)</span>,</span>
+<span>  para <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">trans_matrix</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  error <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">trans_matrix</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="va">SampleSize</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,20 +78,20 @@ noise expected by the model.</p>
 <dd><p>A square matrix combining the network topology \(T\) and integer-coded Boolean logic functions \(F\) assigned to each directed edge.</p></dd>
 
 
-<dt id="arg-num-node">num.node<a class="anchor" aria-label="anchor" href="#arg-num-node"></a></dt>
-<dd><p>An integer representing the total number of network nodes.</p></dd>
-
-
 <dt id="arg-samplesize">SampleSize<a class="anchor" aria-label="anchor" href="#arg-samplesize"></a></dt>
-<dd><p>An integer representing the total number of time points to simulate.</p></dd>
+<dd><p>An integer representing the total number of time points to simulate. Defaults to 50 if not specified.</p></dd>
+
+
+<dt id="arg-num-node">num.node<a class="anchor" aria-label="anchor" href="#arg-num-node"></a></dt>
+<dd><p>An integer representing the total number of network nodes. Defaults to <code>nrow(trans_matrix)</code> if not specified.</p></dd>
 
 
 <dt id="arg-para">para<a class="anchor" aria-label="anchor" href="#arg-para"></a></dt>
-<dd><p>A numeric vector of baseline success probabilities (\(\theta_i\)) used to generate the expression states of root nodes via independent Bernoulli trials.</p></dd>
+<dd><p>A numeric vector of baseline success probabilities (\(\theta_i\)) used to generate the expression states of root nodes via independent Bernoulli trials. Defaults to a <code>rep(0.5, nrow(trans_matrix))</code> if not specified.</p></dd>
 
 
 <dt id="arg-error">error<a class="anchor" aria-label="anchor" href="#arg-error"></a></dt>
-<dd><p>A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise.</p></dd>
+<dd><p>A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise. Defaults to a zero matrix of size <code>nrow(trans_matrix) x SampleSize</code> if not specified (no noise).</p></dd>
 
 </dl></div>
     <div class="section level2">
