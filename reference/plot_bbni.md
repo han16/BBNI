@@ -1,6 +1,10 @@
 # Plot the Inferred Bayesian Boolean Network
 
-Plot the Inferred Bayesian Boolean Network
+Visualizes the causal network structure inferred by the BBNI MCMC
+sampler. This function takes the marginal posterior probability of each
+directed edge and plots the network using the `igraph` package. Edges
+with posterior probabilities below the specified threshold are omitted
+from the plot.
 
 ## Usage
 
@@ -34,3 +38,25 @@ plot_bbni(results, threshold = 0.5, node_names = NULL, ...)
 ## Value
 
 An invisible `igraph` object.
+
+## Examples
+
+``` r
+# \donttest{
+# 1. Generate synthetic network and time-series data
+set.seed(123)
+true_network <- GenerateNetwork(num.node = 5)
+dummy_data <- GenerateSample(true_network, SampleSize = 15)
+
+# 2. Run BBNI sampler
+prior_para <- matrix(3, nrow = 6, ncol = 2)
+prior_para[6, 1] <- 2
+prior_para[6, 2] <- 100
+
+results <- run_bbni(dummy_data, prior_para = prior_para, num_update = 100)
+
+# 3. Plot inferred network
+plot_bbni(results, threshold = 0.5)
+
+# }
+```

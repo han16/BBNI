@@ -73,7 +73,8 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  prop.ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  timeseries <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  timeseries <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  burn_in <span class="op">=</span> <span class="fl">0.7</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -82,7 +83,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dl><dt id="arg-genedata">GeneData<a class="anchor" aria-label="anchor" href="#arg-genedata"></a></dt>
-<dd><p>A binary empirical observation matrix of the binary expression data (\(G\)).</p></dd>
+<dd><p>A binary empirical observation matrix (\(G\)), where rows represent individual network nodes (genes) and columns represent independent samples or sequential time points.</p></dd>
 
 
 <dt id="arg-num-node">num.node<a class="anchor" aria-label="anchor" href="#arg-num-node"></a></dt>
@@ -90,11 +91,11 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dt id="arg-samplesize">SampleSize<a class="anchor" aria-label="anchor" href="#arg-samplesize"></a></dt>
-<dd><p>An integer representing the total number of time points in the dataset. Defaults to <code>ncol(GeneData)</code> if not specified.</p></dd>
+<dd><p>An integer representing the total number of time points or independent samples in the dataset. Defaults to <code>ncol(GeneData)</code> if not specified.</p></dd>
 
 
 <dt id="arg-prior-para">prior_para<a class="anchor" aria-label="anchor" href="#arg-prior-para"></a></dt>
-<dd><p>A matrix of Beta prior hyperparameters \(\alpha\) and \(\beta\) for root node probabilities and the global noise parameter \(e\). Defaults to a flat prior if not specified.</p></dd>
+<dd><p>A matrix (with dimensions <code>(num.node + 1) x 2</code>) of Beta prior hyperparameters \(\alpha\) and \(\beta\) for root node probabilities and the global noise parameter \(e\). Defaults to a flat prior if not specified.</p></dd>
 
 
 <dt id="arg-num-update">num_update<a class="anchor" aria-label="anchor" href="#arg-num-update"></a></dt>
@@ -106,7 +107,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dt id="arg-prop-ratio">prop.ratio<a class="anchor" aria-label="anchor" href="#arg-prop-ratio"></a></dt>
-<dd><p>A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution. Defaults to 0.5 if not specified.</p></dd>
+<dd><p>A numeric value between 0 and 1 representing the probability of choosing a uniform proposal distribution over an empirical proposal distribution at each iteration. Defaults to 0.5</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -116,10 +117,14 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <dt id="arg-timeseries">timeseries<a class="anchor" aria-label="anchor" href="#arg-timeseries"></a></dt>
 <dd><p>Logical. If TRUE, the algorithm assumes a time-series dataset. If FALSE, the algorithm assumes independent samples. Default is TRUE.</p></dd>
 
+
+<dt id="arg-burn-in">burn_in<a class="anchor" aria-label="anchor" href="#arg-burn-in"></a></dt>
+<dd><p>A numeric value between 0 and 1 representing the proportion of initial MCMC samples to discard as burn-in. Defaults to 0.7 if not specified.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing the full trajectory of the MCMC chain. Specifically, <code>networks</code> (a list of sampled transition function matrices) and <code>log_posterior</code> (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \(P(T,F|G)\) used for Bayesian model averaging.</p>
+    <p>A list containing the full trajectory of the MCMC chain. Specifically, <code>networks</code> (a list of sampled transition function matrices) and <code>log_posterior</code> (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \(P(T,F|G)\) used for Bayesian model averaging. Additionally, the <code>post_edge_prob</code> (matrix of marginal posterior edge probabilities) and <code>burn_in</code> ratio are returned in the list.</p>
     </div>
 
     <div class="section level2">
@@ -151,7 +156,6 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">dummy_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="GenerateSample.html">GenerateSample</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    trans_matrix <span class="op">=</span> <span class="va">true_network</span>,</span></span>
-<span class="r-in"><span>    num.node <span class="op">=</span> <span class="va">num_nodes</span>,</span></span>
 <span class="r-in"><span>    SampleSize <span class="op">=</span> <span class="va">sample_size</span>,</span></span>
 <span class="r-in"><span>    para <span class="op">=</span> <span class="va">para</span>,</span></span>
 <span class="r-in"><span>    error <span class="op">=</span> <span class="va">error_matrix</span></span></span>
@@ -160,17 +164,16 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span class="r-in"><span>  <span class="co"># 3. Run the MCMC sampler (silently)</span></span></span>
 <span class="r-in"><span>  <span class="va">mcmc_results</span> <span class="op">&lt;-</span> <span class="fu">run_bbni</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    GeneData <span class="op">=</span> <span class="va">dummy_data</span>,</span></span>
-<span class="r-in"><span>    num.node <span class="op">=</span> <span class="va">num_nodes</span>,</span></span>
-<span class="r-in"><span>    SampleSize <span class="op">=</span> <span class="va">sample_size</span>,</span></span>
 <span class="r-in"><span>    prior_para <span class="op">=</span> <span class="va">prior_para</span>,</span></span>
 <span class="r-in"><span>    num_update <span class="op">=</span> <span class="fl">100</span>, <span class="co"># Scaled down for example speed</span></span></span>
-<span class="r-in"><span>    penalty <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>    prop.ratio <span class="op">=</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># 4. Inspect results</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">$</span><span class="va">log_posterior</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -279.5854 -279.5854 -281.8880 -281.8880 -281.8880 -281.8880</span>
+<span class="r-in"><span>  <span class="co"># 4. Visualize results</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="plot_bbni.html">plot_bbni</a></span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="run_bbni-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span>  <span class="fu"><a href="plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="run_bbni-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

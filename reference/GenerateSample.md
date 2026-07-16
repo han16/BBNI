@@ -71,7 +71,6 @@ error_matrix <- matrix(0, nrow = num_nodes, ncol = sample_size)
 # 3. Generate the synthetic time-series data
 dummy_data <- GenerateSample(
   trans_matrix = true_network,
-  num.node = num_nodes,
   SampleSize = sample_size,
   para = root_probs,
   error = error_matrix

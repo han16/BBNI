@@ -22,7 +22,8 @@ run_bbni(
   penalty = 0.1,
   prop.ratio = 0.5,
   verbose = FALSE,
-  timeseries = TRUE
+  timeseries = TRUE,
+  burn_in = 0.7
 )
 ```
 
@@ -30,8 +31,9 @@ run_bbni(
 
 - GeneData:
 
-  A binary empirical observation matrix of the binary expression data
-  (\\G\\).
+  A binary empirical observation matrix (\\G\\), where rows represent
+  individual network nodes (genes) and columns represent independent
+  samples or sequential time points.
 
 - num.node:
 
@@ -40,14 +42,15 @@ run_bbni(
 
 - SampleSize:
 
-  An integer representing the total number of time points in the
-  dataset. Defaults to `ncol(GeneData)` if not specified.
+  An integer representing the total number of time points or independent
+  samples in the dataset. Defaults to `ncol(GeneData)` if not specified.
 
 - prior_para:
 
-  A matrix of Beta prior hyperparameters \\\alpha\\ and \\\beta\\ for
-  root node probabilities and the global noise parameter \\e\\. Defaults
-  to a flat prior if not specified.
+  A matrix (with dimensions `(num.node + 1) x 2`) of Beta prior
+  hyperparameters \\\alpha\\ and \\\beta\\ for root node probabilities
+  and the global noise parameter \\e\\. Defaults to a flat prior if not
+  specified.
 
 - num_update:
 
@@ -62,9 +65,9 @@ run_bbni(
 
 - prop.ratio:
 
-  A numeric probability threshold used to decide whether to sample a
-  move from the empirical proposal distribution or a uniform random
-  distribution. Defaults to 0.5 if not specified.
+  A numeric value between 0 and 1 representing the probability of
+  choosing a uniform proposal distribution over an empirical proposal
+  distribution at each iteration. Defaults to 0.5
 
 - verbose:
 
@@ -76,6 +79,11 @@ run_bbni(
   Logical. If TRUE, the algorithm assumes a time-series dataset. If
   FALSE, the algorithm assumes independent samples. Default is TRUE.
 
+- burn_in:
+
+  A numeric value between 0 and 1 representing the proportion of initial
+  MCMC samples to discard as burn-in. Defaults to 0.7 if not specified.
+
 ## Value
 
 A list containing the full trajectory of the MCMC chain. Specifically,
@@ -83,6 +91,8 @@ A list containing the full trajectory of the MCMC chain. Specifically,
 `log_posterior` (a numeric vector of log-posterior scores for each
 iteration). These represent samples drawn from the marginal posterior
 distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
+Additionally, the `post_edge_prob` (matrix of marginal posterior edge
+probabilities) and `burn_in` ratio are returned in the list.
 
 ## Examples
 
@@ -114,7 +124,6 @@ distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
 
   dummy_data <- GenerateSample(
     trans_matrix = true_network,
-    num.node = num_nodes,
     SampleSize = sample_size,
     para = para,
     error = error_matrix
@@ -123,16 +132,15 @@ distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
   # 3. Run the MCMC sampler (silently)
   mcmc_results <- run_bbni(
     GeneData = dummy_data,
-    num.node = num_nodes,
-    SampleSize = sample_size,
     prior_para = prior_para,
     num_update = 100, # Scaled down for example speed
-    penalty = 0.1,
     prop.ratio = 0.1
   )
 
-  # 4. Inspect results
-  tail(mcmc_results$log_posterior)
-#> [1] -279.5854 -279.5854 -281.8880 -281.8880 -281.8880 -281.8880
+  # 4. Visualize results
+  plot_bbni(mcmc_results)
+
+  plot_trace(mcmc_results)
+
 # }
 ```
