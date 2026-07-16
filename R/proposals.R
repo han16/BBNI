@@ -10,12 +10,21 @@
 #'
 #' @return A list containing two matrices (`Candidate[[1]]` for 2-input triplets and `Candidate[[2]]` for 1-input pairs). These matrices store the candidate parent nodes, the best-fitting Boolean logic function, the raw miscounts, and the calculated proposal selection weights.
 #' @noRd
-ProposalConstruction <- function(GeneData, SampleSize) {
+ProposalConstruction <- function(GeneData, SampleSize, timeseries = TRUE) {
   gene.data <- GeneData
   error.prop <- 0.4
   pseudo.count <- 0.01
   SampleSize <- SampleSize + pseudo.count * 8
   threshold <- SampleSize * error.prop
+  if (timeseries) {
+    idx_parent <- 1:(SampleSize - 1)
+    idx_child <- 2:SampleSize
+    child_offset <- 1
+  } else {
+    idx_parent <- 1:SampleSize
+    idx_child <- 1:SampleSize
+    child_offset <- 0
+  }
   candidate.prior <- list()
   kk <- 1
   for (i in seq_len(nrow(gene.data))) {
@@ -24,7 +33,7 @@ ProposalConstruction <- function(GeneData, SampleSize) {
         for (k in seq_len(nrow(gene.data))) {
           if (k != i && k != j) {
             test.result <- list()
-            gene.triplet <- rbind(rbind(gene.data[i, 1:(SampleSize - 1)], gene.data[j, 1:(SampleSize - 1)]), gene.data[k, 2:SampleSize])
+            gene.triplet <- rbind(rbind(gene.data[i, idx_parent], gene.data[j, idx_parent]), gene.data[k, idx_child])
             c000 <- 0
             c001 <- 0
             c010 <- 0
@@ -33,29 +42,29 @@ ProposalConstruction <- function(GeneData, SampleSize) {
             c101 <- 0
             c110 <- 0
             c111 <- 0
-            for (ii in 1:(ncol(gene.triplet) - 1)) { # counts in each cell
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + 1)] == 0) {
+            for (ii in 1:(ncol(gene.triplet) - child_offset)) { # counts in each cell
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 0) {
                 c000 <- c000 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + 1)] == 1) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 1) {
                 c001 <- c001 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + 1)] == 0) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 0) {
                 c010 <- c010 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + 1)] == 1) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 1) {
                 c011 <- c011 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + 1)] == 0) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 0) {
                 c100 <- c100 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + 1)] == 1) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 1) {
                 c101 <- c101 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + 1)] == 0) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 0) {
                 c110 <- c110 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + 1)] == 1) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 1) {
                 c111 <- c111 + 1
               }
             }

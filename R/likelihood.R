@@ -17,7 +17,14 @@
 #'
 #' @return A list of two vectors evaluating model fit. `results[[1]]` contains `[ErrorFactor, RootFactor, likelihood, post_para, log_post_model]`, where `log_post_model` is the collapsed posterior metric \eqn{\log p(T, F \mid G)}{\log p(T, F | G)}. `results[[2]]` contains `[para_sample, mismatch, Perror]`, providing point estimates of the root ON-probabilities, total mismatches, and estimated noise error rate \eqn{e}{e}.
 #' @noRd
-Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty) {
+Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty, timeseries = TRUE) {
+  if (timeseries) {
+    idx_child <- 2:SampleSize
+    idx_parent <- 1:(SampleSize - 1)
+  } else {
+    idx_child <- 1:SampleSize
+    idx_parent <- 1:SampleSize
+  }
   InOutPair <- list()
   ii <- 0
   root_node <- numeric()
@@ -49,44 +56,44 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
         in_node <- c(InOutPair[[i]][2], InOutPair[[i]][3])
         out_node <- InOutPair[[i]][1]
         if (InOutPair[[i]][length(InOutPair[[i]])] == 1) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitAnd(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 2) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], 1 - bitAnd(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitAnd(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 3) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitOr(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 4) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], 1 - bitOr(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitOr(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 5) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitOr(1 - GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(1 - GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 6) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitOr(GeneData[in_node[1], 1:(SampleSize - 1)], 1 - GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(GeneData[in_node[1], idx_parent], 1 - GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 7) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitAnd(1 - GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(1 - GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 8) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitAnd(GeneData[in_node[1], 1:(SampleSize - 1)], 1 - GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(GeneData[in_node[1], idx_parent], 1 - GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 9) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], bitXor(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitXor(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 10) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], 1 - bitXor(GeneData[in_node[1], 1:(SampleSize - 1)], GeneData[in_node[2], 1:(SampleSize - 1)])))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitXor(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
         }
       }
       if (InOutPair[[i]][length(InOutPair[[i]])] > 10) {
         in_node <- InOutPair[[i]][2]
         out_node <- InOutPair[[i]][1]
         if (InOutPair[[i]][length(InOutPair[[i]])] == 11) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], GeneData[in_node, 1:(SampleSize - 1)]))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], GeneData[in_node, idx_parent] ))
         }
         if (InOutPair[[i]][length(InOutPair[[i]])] == 12) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, 2:SampleSize], 1 - GeneData[in_node, 1:(SampleSize - 1)]))
+          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - GeneData[in_node, idx_parent] ))
         }
       }
     }

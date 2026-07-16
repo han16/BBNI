@@ -12,7 +12,8 @@ run_bbni(
   num_update = 4000,
   penalty = 0.1,
   prop.ratio = 0.5,
-  verbose = FALSE
+  verbose = FALSE,
+  timeseries = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ run_bbni(
 \item{prop.ratio}{A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution. Defaults to 0.5 if not specified.}
 
 \item{verbose}{Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.}
+
+\item{timeseries}{Logical. If TRUE, the algorithm assumes a time-series dataset. If FALSE, the algorithm assumes independent samples. Default is TRUE.}
 }
 \value{
 A list containing the full trajectory of the MCMC chain. Specifically, \code{networks} (a list of sampled transition function matrices) and \code{log_posterior} (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging.
