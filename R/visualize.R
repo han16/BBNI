@@ -1,22 +1,51 @@
 #' Plot the Inferred Bayesian Boolean Network
 #'
+#' @description
+#' Visualizes the causal network structure inferred by the BBNI MCMC sampler.
+#' This function takes the marginal posterior probability of each directed edge
+#' and plots the network using the \code{igraph} package. Edges with posterior
+#' probabilities below the specified threshold are omitted from the plot.
+#'
 #' @param results The list returned by \code{run_bbni()}, containing \code{networks} and \code{log_posterior}.
 #' @param threshold Numeric. The minimum posterior probability required to draw an edge. Defaults to 0.5.
 #' @param node_names Character vector. Optional names for the nodes. Defaults to "N1", "N2", etc.
 #' @param ... Additional graphical parameters passed to \code{igraph::plot.igraph()}.
 #'
 #' @return An invisible \code{igraph} object.
-#' @export
+#'
+#' @examples
+#' \donttest{
+#' # 1. Generate synthetic network and time-series data
+#' set.seed(123)
+#' true_network <- GenerateNetwork(num.node = 5)
+#' dummy_data <- GenerateSample(true_network, SampleSize = 15)
+#'
+#' # 2. Run BBNI sampler
+#' prior_para <- matrix(3, nrow = 6, ncol = 2)
+#' prior_para[6, 1] <- 2
+#' prior_para[6, 2] <- 100
+#'
+#' results <- run_bbni(dummy_data, prior_para = prior_para, num_update = 100)
+#'
+#' # 3. Plot inferred network
+#' plot_bbni(results, threshold = 0.5)
+#' }
 #'
 #' @importFrom igraph graph_from_adjacency_matrix plot.igraph
+#' @export
 plot_bbni <- function(results, threshold = 0.5, node_names = NULL, ...) {
   # Make sure igraph is available
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop("Package \"igraph\" is required for plotting. Please install it.", call. = FALSE)
   }
   # Extract list of networks and calculate posterior probabilities (res)
-  networks <- results$networks
-  res <- Reduce(`+`, lapply(networks, function(m) (m > 0) * 1)) / length(networks)
+  if (!is.null(results$post_edge_prob)) {
+    res <- results$post_edge_prob
+  } else {
+    # fallback by manually calculate
+    networks <- results$networks
+    res <- Reduce(`+`, lapply(networks, function(m) (m > 0) * 1)) / length(networks)
+  }
   # Filter probability matrix based on threshold
   adj_matrix <- ifelse(res >= threshold, 1, 0)
   # Assign node names if provided, otherwise default to N1, N2...
@@ -44,9 +73,34 @@ plot_bbni <- function(results, threshold = 0.5, node_names = NULL, ...) {
 
 #' Plot MCMC Trace for BBNI
 #'
+#' @description
+#' Generates a trace plot of the log-posterior values over iterations of the MCMC
+#' to visually assess convergence and stability of the executed Markov chain.
+#' Burn-in line is graphed to show when the data started to be utilized for
+#' edge-probability calculations.
+#'
 #' @param results The list returned by \code{run_bbni()}, containing \code{networks} and \code{log_posterior}.
 #'
 #' @return A base R trace plot.
+#'
+#' @examples
+#' \donttest{
+#' # 1. Generate synthetic network and time-series data
+#' set.seed(123)
+#' true_network <- GenerateNetwork(num.node = 5)
+#' dummy_data <- GenerateSample(true_network, SampleSize = 15)
+#'
+#' # 2. Run BBNI sampler
+#' prior_para <- matrix(3, nrow = 6, ncol = 2)
+#' prior_para[6, 1] <- 2
+#' prior_para[6, 2] <- 100
+#'
+#' results <- run_bbni(dummy_data, prior_para = prior_para, num_update = 100)
+#'
+#' # 3. Visualize MCMC results
+#' plot_trace(results)
+#' }
+#'
 #' @export
 plot_trace <- function(results) {
   logpost <- results$log_posterior
@@ -54,4 +108,9 @@ plot_trace <- function(results) {
        xlab = "Iteration", ylab = "Log-Posterior",
        main = "MCMC Trace Plot",
        lwd = 1.5)
+  # add vertical line for burn-in if present
+  if (!is.null(results$burn_in)) {
+    abline(v = results$burn_in * length(results$log_posterior), col = "red", lty = 2)
+    legend("bottomright", legend = paste("Burn-in =", results$burn_in), col = "red", lty = 2, bty = "n")
+  }
 }

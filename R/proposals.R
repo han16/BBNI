@@ -42,29 +42,29 @@ ProposalConstruction <- function(GeneData, SampleSize, timeseries = TRUE) {
             c101 <- 0
             c110 <- 0
             c111 <- 0
-            for (ii in 1:(ncol(gene.triplet) - child_offset)) { # counts in each cell
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 0) {
+            for (ii in seq_len(ncol(gene.triplet))) { # counts in each cell
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 0) {
                 c000 <- c000 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 1) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 1) {
                 c001 <- c001 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 0) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 0) {
                 c010 <- c010 + 1
               }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 1) {
+              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 1) {
                 c011 <- c011 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 0) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 0) {
                 c100 <- c100 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, (ii + child_offset)] == 1) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 1) {
                 c101 <- c101 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 0) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 0) {
                 c110 <- c110 + 1
               }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, (ii + child_offset)] == 1) {
+              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 1) {
                 c111 <- c111 + 1
               }
             }

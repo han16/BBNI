@@ -8,17 +8,18 @@
 #' Proposed states transitions are strictly verified to follow the DAG constraint and
 #' evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values.
 #'
-#' @param GeneData A binary empirical observation matrix of the binary expression data (\eqn{G}{G}).
+#' @param GeneData A binary empirical observation matrix (\eqn{G}{G}), where rows represent individual network nodes (genes) and columns represent independent samples or sequential time points.
 #' @param num.node An integer representing the total number of network nodes. Defaults to \code{nrow(GeneData)} if not specified.)
-#' @param SampleSize An integer representing the total number of time points in the dataset. Defaults to \code{ncol(GeneData)} if not specified.
-#' @param prior_para A matrix of Beta prior hyperparameters \eqn{\alpha}{\alpha} and \eqn{\beta}{\beta} for root node probabilities and the global noise parameter \eqn{e}{e}. Defaults to a flat prior if not specified.
+#' @param SampleSize An integer representing the total number of time points or independent samples in the dataset. Defaults to \code{ncol(GeneData)} if not specified.
+#' @param prior_para A matrix (with dimensions `(num.node + 1) x 2`) of Beta prior hyperparameters \eqn{\alpha}{\alpha} and \eqn{\beta}{\beta} for root node probabilities and the global noise parameter \eqn{e}{e}. Defaults to a flat prior if not specified.
 #' @param num_update An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.
 #' @param penalty A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}. Defaults to 0.1 if not specified.
-#' @param prop.ratio A numeric probability threshold used to decide whether to sample a move from the empirical proposal distribution or a uniform random distribution. Defaults to 0.5 if not specified.
+#' @param prop.ratio A numeric value between 0 and 1 representing the probability of choosing a uniform proposal distribution over an empirical proposal distribution at each iteration. Defaults to 0.5
 #' @param verbose Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.
 #' @param timeseries Logical. If TRUE, the algorithm assumes a time-series dataset. If FALSE, the algorithm assumes independent samples. Default is TRUE.
+#' @param burn_in A numeric value between 0 and 1 representing the proportion of initial MCMC samples to discard as burn-in. Defaults to 0.7 if not specified.
 #'
-#' @return A list containing the full trajectory of the MCMC chain. Specifically, `networks` (a list of sampled transition function matrices) and `log_posterior` (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging.
+#' @return A list containing the full trajectory of the MCMC chain. Specifically, `networks` (a list of sampled transition function matrices) and `log_posterior` (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging. Additionally, the `post_edge_prob` (matrix of marginal posterior edge probabilities) and `burn_in` ratio are returned in the list.
 #'
 #' @examples
 #' \donttest{
@@ -48,7 +49,6 @@
 #'
 #'   dummy_data <- GenerateSample(
 #'     trans_matrix = true_network,
-#'     num.node = num_nodes,
 #'     SampleSize = sample_size,
 #'     para = para,
 #'     error = error_matrix
@@ -57,23 +57,21 @@
 #'   # 3. Run the MCMC sampler (silently)
 #'   mcmc_results <- run_bbni(
 #'     GeneData = dummy_data,
-#'     num.node = num_nodes,
-#'     SampleSize = sample_size,
 #'     prior_para = prior_para,
 #'     num_update = 100, # Scaled down for example speed
-#'     penalty = 0.1,
 #'     prop.ratio = 0.1
 #'   )
 #'
-#'   # 4. Inspect results
-#'   tail(mcmc_results$log_posterior)
+#'   # 4. Visualize results
+#'   plot_bbni(mcmc_results)
+#'   plot_trace(mcmc_results)
 #' }
 #'
 #' @importFrom stats runif
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(GeneData), prior_para = NULL,
-                     num_update = 4000, penalty = 0.1, prop.ratio = 0.5, verbose = FALSE, timeseries = TRUE) {
+                     num_update = 4000, penalty = 0.1, prop.ratio = 0.5, verbose = FALSE, timeseries = TRUE, burn_in = 0.7) {
   # Generate flat priors if not provided by user
   if (is.null(prior_para)) {
     prior_para <- matrix(1, nrow = num.node + 1, ncol = 2)
@@ -1287,11 +1285,17 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
       }
     } # end of updating
   } # end of num_update
+  # calculate burn-in
+  burn_in_steps <- floor(burn_in * num_update * num.node)
+  # post-burn-in samples
+  post_samples <- Trans_Func_Matrix[(burn_in_steps + 2):(num_update * num.node + 1)]
+  # calculate the posterior probability of each edge
+  post_edge_prob <- Reduce(`+`, lapply(post_samples, function(m) (m > 0) * 1)) / length(post_samples)
+  rownames(post_edge_prob) <- rownames(GeneData)
+  colnames(post_edge_prob) <- rownames(GeneData)
   if (verbose) {
     close(pb)
-    # how many edges have >50% posterior probability?
-    res <- Reduce(`+`, lapply(Trans_Func_Matrix, function(m) (m > 0) * 1)) / length(Trans_Func_Matrix)
-    strong_edges <- sum(res > 0.5)
+    strong_edges <- sum(post_edge_prob > 0.5)
     # print a clean summary block
     cat("\n")
     cat("=========================================\n")
@@ -1300,12 +1304,15 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
     cat(sprintf("Nodes Analyzed:          %d\n", num.node))
     cat(sprintf("Samples Processed:       %d\n", SampleSize))
     cat(sprintf("MCMC Iterations:         %d\n", num_update))
-    cat(sprintf("Final Log-Posterior:     %.3f\n", all_logpost[num_update]))
+    cat(sprintf("Burn-in ratio:           %.2f\n", burn_in))
+    cat(sprintf("Final Log-Posterior:     %.3f\n", all_logpost[length(all_logpost)]))
     cat(sprintf("Strong Edges (P > 0.5):  %d\n", strong_edges))
     cat("=========================================\n")
   }
   return(list(
     networks = Trans_Func_Matrix,
-    log_posterior = all_logpost
+    log_posterior = all_logpost,
+    post_edge_prob = post_edge_prob,
+    burn_in = burn_in
   ))
 }
