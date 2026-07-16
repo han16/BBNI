@@ -51,24 +51,27 @@ GenerateNetwork <- function(num.node) {
   }
   return(tent_trans_matrix)
 }
-#' Simulate Time-Series Observation Dataset
+#' Simulate Boolean Network Observation Dataset
 #'
-#' Simulates a synthetic time-series observation dataset (\eqn{G}{G}).
-#' It starts by running independent Bernoulli trials on root nodes.
-#' The remaining non-root nodes are calculated from time \eqn{t-1}{t-1} to time \eqn{t}{t} using their assigned Boolean logic functions.
+#' Simulates a synthetic binary observation dataset (\eqn{G}{G}) based on a given
+#' directed acyclic graph topology with Boolean rules. It starts by running
+#' independent Bernoulli trials on root nodes. The remaining non-root nodes
+#' are calculated based on their assigned Boolean logic functions and parent states.
 #' A pre-generated binary noise matrix is applied via a bitwise XOR operation
 #' to occasionally flip the Boolean outputs, injecting natural biological
 #' noise expected by the model.
 #'
 #' @param trans_matrix A square matrix combining the network topology \eqn{T}{T} and integer-coded Boolean logic functions \eqn{F}{F} assigned to each directed edge.
-#' @param SampleSize An integer representing the total number of time points to simulate. Defaults to 50 if not specified.
+#' @param SampleSize An integer representing the total number of samples or time points to simulate. Defaults to 50 if not specified.
 #' @param num.node An integer representing the total number of network nodes. Defaults to \code{nrow(trans_matrix)} if not specified.
 #' @param para A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials. Defaults to a \code{rep(0.5, nrow(trans_matrix))} if not specified.
 #' @param error A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise. Defaults to a zero matrix of size \code{nrow(trans_matrix) x SampleSize} if not specified (no noise).
+#' @param timeseries Logical. If TRUE, simulates time-lagged data where child state at time \eqn{t}{t} is determined by parent stated at \eqn{t-1}{t-1}. If FALSE, simulates independent samples where child and parent states are resolved simultaneously. Defaults to TRUE.
 #'
-#' @return A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent sequential points in time.
+#' @return A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent samples.
 #'
 #' @examples
+#' \donttest{
 #' # 1. Generate a 5-node network
 #' set.seed(123)
 #' num_nodes <- 5
@@ -79,18 +82,20 @@ GenerateNetwork <- function(num.node) {
 #' root_probs <- rep(0.5, num_nodes)
 #' error_matrix <- matrix(0, nrow = num_nodes, ncol = sample_size)
 #'
-#' # 3. Generate the synthetic time-series data
+#' # 3. Generate cross-sectional (independent mode) synthetic data
 #' dummy_data <- GenerateSample(
 #'   trans_matrix = true_network,
 #'   SampleSize = sample_size,
 #'   para = root_probs,
-#'   error = error_matrix
+#'   error = error_matrix,
+#'   timeseries = FALSE
 #' )
 #' print(dummy_data)
+#' }
 #'
 #' @importFrom bitops bitXor bitAnd bitOr
 #' @export
-GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_matrix), para = rep(0.5, nrow(trans_matrix)), error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize)) {
+GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_matrix), para = rep(0.5, nrow(trans_matrix)), error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize), timeseries = TRUE) {
   node_ances <- matrix(nrow = num.node, ncol = 2)
   GeneData <- matrix(0, nrow = num.node, ncol = SampleSize)
   incid_matrix <- trans_matrix
@@ -106,12 +111,20 @@ GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_
     node_ances[i, 1] <- i
     node_ances[i, 2] <- sum(ances_matrix[i, ])
   }
+  # sort nodes by ancestor count to evaluate in topological order
   node_ances <- node_ances[order(node_ances[, 2]), ]
+  # dynamic idxing
+  if (timeseries) {
+    idx_child <- 2:SampleSize
+    idx_parent <- 1:(SampleSize - 1)
+  } else {
+    idx_child <- 1:SampleSize
+    idx_parent <- 1:SampleSize
+  }
   for (i in seq_len(nrow(node_ances))) {
     if (node_ances[i, 2] == 0) {
       GeneData[node_ances[i, 1], ] <- rbinom(SampleSize, 1, prob = para[node_ances[i, 1]])
-    }
-    if (node_ances[i, 2] != 0) {
+    } else {
       parent <- numeric()
       ii <- 1
       for (j in seq_len(ncol(incid_matrix))) {
@@ -121,41 +134,42 @@ GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_
         }
       }
       func <- trans_matrix[node_ances[i, 1], parent[1]]
+      # bitwise boolean operations now mapped dynamically w/ idx_child and idx_parent
       if (func == 1) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitAnd(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 2) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(1 - bitAnd(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 3) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitOr(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 4) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(1 - bitOr(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 5) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitOr(1 - GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 6) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitOr(GeneData[parent[1], 1:(SampleSize - 1)], 1 - GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 7) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitAnd(1 - GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 8) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitAnd(GeneData[parent[1], 1:(SampleSize - 1)], 1 - GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 9) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(bitXor(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 10) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(1 - bitXor(GeneData[parent[1], 1:(SampleSize - 1)], GeneData[parent[2], 1:(SampleSize - 1)]), error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 11) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(GeneData[parent[1], 1:(SampleSize - 1)], error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
       }
       if (func == 12) {
-        GeneData[node_ances[i, 1], 2:SampleSize] <- bitXor(1 - GeneData[parent[1], 1:(SampleSize - 1)], error[node_ances[i, 1], 1:(SampleSize - 1)])
+        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
       }
     }
   }

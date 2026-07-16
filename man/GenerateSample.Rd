@@ -2,39 +2,44 @@
 % Please edit documentation in R/simulate.R
 \name{GenerateSample}
 \alias{GenerateSample}
-\title{Simulate Time-Series Observation Dataset}
+\title{Simulate Boolean Network Observation Dataset}
 \usage{
 GenerateSample(
   trans_matrix,
   SampleSize = 50,
   num.node = nrow(trans_matrix),
   para = rep(0.5, nrow(trans_matrix)),
-  error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize)
+  error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize),
+  timeseries = TRUE
 )
 }
 \arguments{
 \item{trans_matrix}{A square matrix combining the network topology \eqn{T}{T} and integer-coded Boolean logic functions \eqn{F}{F} assigned to each directed edge.}
 
-\item{SampleSize}{An integer representing the total number of time points to simulate. Defaults to 50 if not specified.}
+\item{SampleSize}{An integer representing the total number of samples or time points to simulate. Defaults to 50 if not specified.}
 
 \item{num.node}{An integer representing the total number of network nodes. Defaults to \code{nrow(trans_matrix)} if not specified.}
 
 \item{para}{A numeric vector of baseline success probabilities (\eqn{\theta_i}{\theta_i}) used to generate the expression states of root nodes via independent Bernoulli trials. Defaults to a \code{rep(0.5, nrow(trans_matrix))} if not specified.}
 
 \item{error}{A pre-generated binary noise matrix applied to occasionally flip Boolean outputs, injecting natural noise. Defaults to a zero matrix of size \code{nrow(trans_matrix) x SampleSize} if not specified (no noise).}
+
+\item{timeseries}{Logical. If TRUE, simulates time-lagged data where child state at time \eqn{t}{t} is determined by parent stated at \eqn{t-1}{t-1}. If FALSE, simulates independent samples where child and parent states are resolved simultaneously. Defaults to TRUE.}
 }
 \value{
-A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent sequential points in time.
+A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent samples.
 }
 \description{
-Simulates a synthetic time-series observation dataset (\eqn{G}{G}).
-It starts by running independent Bernoulli trials on root nodes.
-The remaining non-root nodes are calculated from time \eqn{t-1}{t-1} to time \eqn{t}{t} using their assigned Boolean logic functions.
+Simulates a synthetic binary observation dataset (\eqn{G}{G}) based on a given
+directed acyclic graph topology with Boolean rules. It starts by running
+independent Bernoulli trials on root nodes. The remaining non-root nodes
+are calculated based on their assigned Boolean logic functions and parent states.
 A pre-generated binary noise matrix is applied via a bitwise XOR operation
 to occasionally flip the Boolean outputs, injecting natural biological
 noise expected by the model.
 }
 \examples{
+\donttest{
 # 1. Generate a 5-node network
 set.seed(123)
 num_nodes <- 5
@@ -45,13 +50,15 @@ true_network <- GenerateNetwork(num.node = num_nodes)
 root_probs <- rep(0.5, num_nodes)
 error_matrix <- matrix(0, nrow = num_nodes, ncol = sample_size)
 
-# 3. Generate the synthetic time-series data
+# 3. Generate cross-sectional (independent mode) synthetic data
 dummy_data <- GenerateSample(
   trans_matrix = true_network,
   SampleSize = sample_size,
   para = root_probs,
-  error = error_matrix
+  error = error_matrix,
+  timeseries = FALSE
 )
 print(dummy_data)
+}
 
 }
