@@ -72,7 +72,8 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span>  num_update <span class="op">=</span> <span class="fl">4000</span>,</span>
 <span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  prop.ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  timeseries <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -110,6 +111,10 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.</p></dd>
+
+
+<dt id="arg-timeseries">timeseries<a class="anchor" aria-label="anchor" href="#arg-timeseries"></a></dt>
+<dd><p>Logical. If TRUE, the algorithm assumes a time-series dataset. If FALSE, the algorithm assumes independent samples. Default is TRUE.</p></dd>
 
 </dl></div>
     <div class="section level2">

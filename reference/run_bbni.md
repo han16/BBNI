@@ -21,7 +21,8 @@ run_bbni(
   num_update = 4000,
   penalty = 0.1,
   prop.ratio = 0.5,
-  verbose = FALSE
+  verbose = FALSE,
+  timeseries = TRUE
 )
 ```
 
@@ -69,6 +70,11 @@ run_bbni(
 
   Logical. If TRUE, prints verbose MCMC iteration progress to the
   console. Default is FALSE.
+
+- timeseries:
+
+  Logical. If TRUE, the algorithm assumes a time-series dataset. If
+  FALSE, the algorithm assumes independent samples. Default is TRUE.
 
 ## Value
 
