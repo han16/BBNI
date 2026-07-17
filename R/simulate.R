@@ -14,7 +14,9 @@
 #' # Generate a true network topology and Boolean rules for 5 nodes
 #' set.seed(123)
 #' true_network <- GenerateNetwork(num.node = 5)
-#' print(true_network)
+#'
+#' # Graph the network with built-in exported function plot_network
+#' plot_network(true_network)
 #'
 #' @importFrom stats rbinom runif
 #' @export
@@ -71,7 +73,6 @@ GenerateNetwork <- function(num.node) {
 #' @return A simulated binary gene expression matrix \eqn{G}{G}, where rows represent individual genes/nodes and columns represent samples.
 #'
 #' @examples
-#' \donttest{
 #' # 1. Generate a 5-node network
 #' set.seed(123)
 #' num_nodes <- 5
@@ -91,7 +92,6 @@ GenerateNetwork <- function(num.node) {
 #'   timeseries = FALSE
 #' )
 #' print(dummy_data)
-#' }
 #'
 #' @importFrom bitops bitXor bitAnd bitOr
 #' @export

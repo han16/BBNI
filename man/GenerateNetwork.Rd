@@ -23,6 +23,8 @@ the resulting structure does not contain directed cyclic loops.
 # Generate a true network topology and Boolean rules for 5 nodes
 set.seed(123)
 true_network <- GenerateNetwork(num.node = 5)
-print(true_network)
+
+# Graph the network with built-in exported function plot_network
+plot_network(true_network)
 
 }

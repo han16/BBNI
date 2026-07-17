@@ -39,7 +39,6 @@ to occasionally flip the Boolean outputs, injecting natural biological
 noise expected by the model.
 }
 \examples{
-\donttest{
 # 1. Generate a 5-node network
 set.seed(123)
 num_nodes <- 5
@@ -59,6 +58,5 @@ dummy_data <- GenerateSample(
   timeseries = FALSE
 )
 print(dummy_data)
-}
 
 }
