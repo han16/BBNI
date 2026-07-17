@@ -1,5 +1,22 @@
 # Changelog
 
+## BBNI 0.2.0
+
+- Added new visualization functions: plot_bbni(), plot_trace(), and
+  plot_network()
+- Enhanced plot_bbni() to compare inferred networks against true
+  networks and fixed a reversed edge direction bug
+- Implemented independent (non-timeseries) mode across core algorithm
+  and data generation functions
+- Upgraded run_bbni() with a progress bar, MCMC summary, burn-in
+  parameters, and posterior edge probabilities
+- Optimized MCMC mixing with logic fixes to ProposalConstruction
+- Added default parameters for key user-facing functions
+- Significantly expanded documentation and examples across all primary
+  functions
+- Included public yeast dataset from original paper for user testing and
+  for vignette
+
 ## BBNI 0.1.1
 
 CRAN release: 2026-07-15

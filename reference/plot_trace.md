@@ -26,7 +26,6 @@ A base R trace plot.
 ## Examples
 
 ``` r
-# \donttest{
 # 1. Generate synthetic network and time-series data
 set.seed(123)
 true_network <- GenerateNetwork(num.node = 5)
@@ -42,5 +41,4 @@ results <- run_bbni(dummy_data, prior_para = prior_para, num_update = 100)
 # 3. Visualize MCMC results
 plot_trace(results)
 
-# }
 ```

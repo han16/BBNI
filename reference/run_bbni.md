@@ -97,50 +97,48 @@ probabilities) and `burn_in` ratio are returned in the list.
 ## Examples
 
 ``` r
-# \donttest{
-  # 1. Define network parameters
-  set.seed(235)
-  num_nodes <- 10
-  sample_size <- 50
+# 1. Define network parameters
+set.seed(235)
+num_nodes <- 8
+sample_size <- 50
 
-  # 2. Generate true network and simulate data
-  true_network <- GenerateNetwork(num.node = num_nodes)
+# 2. Generate true network and simulate data
+true_network <- GenerateNetwork(num.node = num_nodes)
 
-  # Set up Beta priors for root-node probabilities and the noise rate
-  prior_para <- matrix(3, nrow = num_nodes + 1, ncol = 2)
-  prior_para[num_nodes + 1, 1] <- 2
-  prior_para[num_nodes + 1, 2] <- 100
+# Set up Beta priors for root-node probabilities and the noise rate
+prior_para <- matrix(3, nrow = num_nodes + 1, ncol = 2)
+prior_para[num_nodes + 1, 1] <- 2
+prior_para[num_nodes + 1, 2] <- 100
 
-  # Simulate parameters
-  para <- numeric(num_nodes + 1)
-  for (i in 1:(num_nodes + 1)) {
-    para[i] <- stats::rbeta(1, prior_para[i, 1], prior_para[i, 2])
-  }
-  para[num_nodes + 1] <- 0.1 # Fixed noise rate for simulation
+# Simulate parameters
+para <- numeric(num_nodes + 1)
+for (i in 1:(num_nodes + 1)) {
+  para[i] <- stats::rbeta(1, prior_para[i, 1], prior_para[i, 2])
+}
+para[num_nodes + 1] <- 0.1 # Fixed noise rate for simulation
 
-  error_matrix <- matrix(stats::rbinom(num_nodes * sample_size, 1, para[num_nodes + 1]),
-    nrow = num_nodes, ncol = sample_size
-  )
+error_matrix <- matrix(stats::rbinom(num_nodes * sample_size, 1, para[num_nodes + 1]),
+  nrow = num_nodes, ncol = sample_size
+)
 
-  dummy_data <- GenerateSample(
-    trans_matrix = true_network,
-    SampleSize = sample_size,
-    para = para,
-    error = error_matrix
-  )
+dummy_data <- GenerateSample(
+  trans_matrix = true_network,
+  SampleSize = sample_size,
+  para = para,
+  error = error_matrix
+)
 
-  # 3. Run the MCMC sampler (silently)
-  mcmc_results <- run_bbni(
-    GeneData = dummy_data,
-    prior_para = prior_para,
-    num_update = 100, # Scaled down for example speed
-    prop.ratio = 0.1
-  )
+# 3. Run the MCMC sampler (silently)
+mcmc_results <- run_bbni(
+  GeneData = dummy_data,
+  prior_para = prior_para,
+  num_update = 80, # Scaled down for example speed
+  prop.ratio = 0.1
+)
 
-  # 4. Visualize results
-  plot_bbni(mcmc_results)
+# 4. Visualize results
+plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5)
 
-  plot_trace(mcmc_results)
+plot_trace(mcmc_results)
 
-# }
 ```

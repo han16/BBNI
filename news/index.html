@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">BBNI</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,17 @@
       <small>Source: <a href="https://github.com/han16/BBNI/blob/Graphical-Models/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="bbni-020">BBNI 0.2.0<a class="anchor" aria-label="anchor" href="#bbni-020"></a></h2>
+<ul><li>Added new visualization functions: plot_bbni(), plot_trace(), and plot_network()</li>
+<li>Enhanced plot_bbni() to compare inferred networks against true networks and fixed a reversed edge direction bug</li>
+<li>Implemented independent (non-timeseries) mode across core algorithm and data generation functions</li>
+<li>Upgraded run_bbni() with a progress bar, MCMC summary, burn-in parameters, and posterior edge probabilities</li>
+<li>Optimized MCMC mixing with logic fixes to ProposalConstruction</li>
+<li>Added default parameters for key user-facing functions</li>
+<li>Significantly expanded documentation and examples across all primary functions</li>
+<li>Included public yeast dataset from original paper for user testing and for vignette</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="bbni-011">BBNI 0.1.1<a class="anchor" aria-label="anchor" href="#bbni-011"></a></h2><p class="text-muted">CRAN release: 2026-07-15</p>
 <ul><li>Rewrote documentation, vignette, and README for clarity</li>

@@ -66,7 +66,6 @@ individual genes/nodes and columns represent samples.
 ## Examples
 
 ``` r
-# \donttest{
 # 1. Generate a 5-node network
 set.seed(123)
 num_nodes <- 5
@@ -92,5 +91,4 @@ print(dummy_data)
 #> [3,]    1    0    0    0    1    0    0    1    0     1
 #> [4,]    1    0    0    0    1    0    0    1    0     1
 #> [5,]    0    1    1    1    0    1    1    0    1     0
-# }
 ```

@@ -36,7 +36,6 @@ An invisible `igraph` object.
 ## Examples
 
 ``` r
-# \donttest{
 # 1. Generate synthetic 5-node network topology
 set.seed(123)
 true_network <- GenerateNetwork(num.node = 5)
@@ -44,5 +43,4 @@ true_network <- GenerateNetwork(num.node = 5)
 # 2. Plot the generated network
 plot_network(true_network)
 
-# }
 ```
