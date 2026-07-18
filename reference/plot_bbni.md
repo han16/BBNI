@@ -23,7 +23,7 @@ plot_bbni(
 - results:
 
   The list returned by
-  [`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
+  [`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md),
   containing `networks` and `log_posterior`.
 
 - threshold:
