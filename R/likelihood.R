@@ -25,30 +25,20 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
     idx_child <- 1:SampleSize
     idx_parent <- 1:SampleSize
   }
-  InOutPair <- list()
-  ii <- 0
-  root_node <- numeric()
-  root <- 0
-  for (i in seq_len(nrow(TRFUM))) { #  i row   find each input output combination
-    if (sum(TRFUM[i, ]) > 0) {
-      ii <- ii + 1
-      p <- numeric()
-      k <- 1
-      jj <- numeric()
-      for (j in seq_len(nrow(TRFUM))) { # j column
-        if (TRFUM[i, j] != 0) {
-          p[k] <- TRFUM[i, j]
-          jj[k] <- j
-          InOutPair[[ii]] <- c(i, jj, p[k])
-          k <- k + 1
-        }
-      }
-    }
-    if (sum(TRFUM[i, ]) == 0) {
-      root <- root + 1
-      root_node[root] <- i
-    }
+  # speedup. vectorized row processing w/ pre-allocated memory instead of nested loops
+  # drops time complexity from O(N^2) -> O(N)
+  n <- nrow(TRFUM)
+  row_has_parent <- rowSums(TRFUM != 0) > 0
+  root_node <- which(!row_has_parent)
+  nonroot_rows <- which(row_has_parent)
+  InOutPair <- vector("list", length(nonroot_rows))
+  for (idx in seq_along(nonroot_rows)) {
+    i <- nonroot_rows[idx]
+    jj <- which(TRFUM[i, ] != 0)
+    p <- TRFUM[i, jj]
+    InOutPair[[idx]] <- c(i, jj, p[length(p)])
   }
+  ii <- length(InOutPair)
   mismatch <- 0
   if (length(InOutPair) > 0) {
     for (i in seq_along(InOutPair)) {

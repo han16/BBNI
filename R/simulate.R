@@ -21,6 +21,8 @@
 #' @importFrom stats rbinom runif
 #' @export
 GenerateNetwork <- function(num.node) {
+  # seems to end up into a nearly infinite loop at higher numbers of num.node, need to fix
+  all_nodes <- 1:num.node
   loop <- 1
   while (loop != 0) {
     tent_incid_matrix <- matrix(0, nrow = num.node, ncol = num.node)
@@ -29,7 +31,7 @@ GenerateNetwork <- function(num.node) {
       u1 <- runif(1)
       uu <- 4
       if (u1 > 1 / 10 && u1 <= uu / 10) {
-        position <- sample(seq(num.node)[-i], 1)
+        position <- sample(all_nodes[-i], 1)
         tent_incid_matrix[i, position] <- 1
         u2 <- runif(1)
         if (u2 > 0.5) {
@@ -40,7 +42,7 @@ GenerateNetwork <- function(num.node) {
         }
       }
       if (u1 > uu / 10) {
-        position <- sample(seq(num.node)[-i], 2)
+        position <- sample(all_nodes[-i], 2)
         tent_incid_matrix[i, position[1]] <- 1
         tent_incid_matrix[i, position[2]] <- 1
         func <- sample(10, 1)

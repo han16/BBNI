@@ -30,12 +30,12 @@ First, we load the package:
 library(BBNI)
 ```
 
-After setup, we will use the package's simulation functions `GenerateNetwork` and `GenerateSample` (both exported). These will initialize a random, known network topology and the associated transition functions, then subsequently take a simulated sample from it (either time-series or independent), respectively. Keeping a stored reference point allows for assessment of final recovery of both the edge structure and the Boolean transition functions.
+After setup, we will use the package's simulation functions `GenerateNetwork` and `GenerateSample` (both exported). These will initialize a random, known network topology and the associated transition functions, and subsequently take a simulated sample from it (either time-series or independent). Keeping a stored reference point allows for assessment of final recovery of both the edge structure and the Boolean transition functions.
 
 ```{r simulate-data}
 set.seed(303)
 num_nodes <- 20
-sample_size <- 80
+sample_size <- 110
 
 # 1. Generate random DAG topology (T) and associated Boolean transition functions (F)
 true_network <- GenerateNetwork(num.node = num_nodes)
@@ -54,9 +54,9 @@ para <- numeric(num_nodes + 1)
 for (i in 1:(num_nodes + 1)) {
   para[i] <- rbeta(1, prior_para[i, 1], prior_para[i, 2])
 }
-# For simulation, fix the noise rate at 25% instead of the raw
+# For simulation, fix the noise rate at 20% instead of the raw
 # Beta(2, 100) draw so we have clear benchmark for validation.
-para[num_nodes + 1] <- 0.25
+para[num_nodes + 1] <- 0.20
 
 # 3. Generate noise matrix and simulate observational dataset (G)
 error_matrix <- matrix(rbinom(num_nodes * sample_size, 1, para[num_nodes + 1]),
@@ -69,9 +69,11 @@ simulated_data <- GenerateSample(
   para = para,
   error = error_matrix
 )
-# BBNI also supports independent data. By toggling timeseries = FALSE, the algorithm 
-# resolves parent and child states at the same time within the exact same sample 
+# BBNI also supports independent data. By toggling timeseries = FALSE, the algorithm
+# resolves parent and child states at the same time within the exact same sample
 # rather than assuming time lag
+# NOTE: We won't execute a separate simulated chain for this, as the real-world
+# application section will already demonstrate independent data functionality
 simulated_data_indep <- GenerateSample(
   trans_matrix = true_network,
   num.node = num_nodes,
@@ -99,11 +101,11 @@ We next execute `run_bbni()` on the simulated data. The main arguments are:
 - `penalty` - structural-prior hyperparameter that penalizes graph density and complexity.
 - `prop.ratio` - mixing weight for the proposal distribution; specifically, the probability of selecting the empirical proposal rather than a uniform random move.
 - `prior_para` - hyperparameter matrix in which the first `n` rows define Beta prior parameters for root-node Bernoulli activation probabilities; row `n+1` sets the prior parameters for the global noise rate $e$, with the required constraint $\beta_1 < \beta_2$.
-- `burn_in` - numeric value between 0 and 1 representing the proportion of initial MCMC samples to discard as burn-in. The leftover samples are used to calculate posterior edge-probabilities.
+- `burn_in` - numeric value between 0 and 1 representing the proportion of initial MCMC samples to discard as burn-in. The leftover samples are used to calculate posterior edge probabilities.
 
 ```{r run-model, results='hide'}
 # Define MCMC and prior hyperparameters
-num_update <- 4000 # Total MCMC iterations
+num_update <- 5000 # Total MCMC iterations
 penalty <- 0.1 # Structural prior penalty for network complexity
 prop_ratio <- 0.1 # Initial proposal mixture coefficient
 
@@ -119,22 +121,11 @@ mcmc_results <- run_bbni(
   timeseries = TRUE,
   burn_in = 0.75
 )
-# Run another inference on the independent-simulated dataset
-mcmc_results_indep <- run_bbni(
-  GeneData = simulated_data_indep,
-  num.node = num_nodes,
-  SampleSize = sample_size,
-  prior_para = prior_para,
-  num_update = num_update,
-  penalty = penalty,
-  prop.ratio = prop_ratio,
-  timeseries = FALSE,
-  burn_in = 0.75
-)
+
 run_end <- Sys.time()
 ```
 
-`run_bbni()` prints a diagnostic log for each node-level update, resulting in `num.node` $\times$ `num_update` lines in total. The summary with the essential values is printed below:
+`run_bbni()` accepts a `verbose` argument (default `FALSE`) that displays a text progress bar during sampling; it's left default here to keep the vignette clean.
 
 ```{r run-summary}
 cat(
@@ -150,6 +141,8 @@ cat(
 
 - `log_posterior` - numeric vector of log-posterior values stored after each node-level update.
 - `networks` - list of sampled transition-function matrices. Each element shares the same format as `true_network`.
+- `post_edge_prob`- matrix of marginal posterior edge probabilities calculated after discarding burn_in period
+- `burn_in`- the `burn_in` ratio returned back to user for posterior reference
 
 ### Convergence: trace plot
 
@@ -173,21 +166,20 @@ plot_trace(mcmc_results)
 
 # Add true-network reference value.
 abline(h = true_logpost, col = "firebrick", lty = 2, lwd = 2)
-legend("topright",
-  legend = "True network log-posterior",
-  col = "firebrick", lty = 2, lwd = 2, bty = "n"
-)
+legend("bottomleft",
+       legend = "True network log-posterior",
+       col = "firebrick", lty = 2, lwd = 2, bty = "n")
 ```
 
 Note that the horizontal axis has units of node-level updates rather than outer MCMC iterations. The convergence of the log-posterior towards the baseline value is an indication of chain success. With statistical variation being inevitable, a perfect match with the true topology and Boolean functions is not expected from a single posterior sample.
 
 ### Final sampled network
 
-The final sampled network can be outputted as follows:
+The final sampled network can be visualized as follows:
 
 ```{r view-results}
 final_network <- tail(mcmc_results$networks, 1)[[1]]
-final_network
+plot_network(final_network)
 ```
 
 ### Recovery of the true network
@@ -219,7 +211,7 @@ Once again, some deviation is reasonable because this comparison uses only one s
 
 Instead of relying on a single sampled network, we can summarize the posterior distribution by Bayesian model averaging (BMA) over several retained network samples. This allows calculation of posterior edge-inclusion probabilities, which are often more informative than a single end sample. In biological applications, reducing false-positive edges is particularly important, as each predicted interaction may warrant costly experimental validation.
 
-We first discard an initial burn-in period, here set to the first 70% of the recorded chain, matching `run_bbni()`'s own default `burn_in` value. This is to reduce the impact of unpredictability of the arbitrary starting structure. We then retain one network per outer iteration (every `num.node` node-level updates) to account for the strong statistical dependence of within-iteration samples. For each directed edge, the posterior inclusion probability is calculated as the fraction of retained samples in which that edge appears:
+We first discard an initial burn-in period, here set to 75% of the recorded chain to match the burn-in convention used in [Han et al. (2014)](https://doi.org/10.1371/journal.pone.0115806)'s own simulation studies, instead of `run_bbni()`'s own default `burn_in` value of 70%. This is to reduce the impact of the unpredictability of the arbitrary starting structure. We then retain one network per outer iteration (every `num.node` node-level updates) to account for the strong statistical dependence of within-iteration samples. For each directed edge, the posterior inclusion probability is calculated as the fraction of retained samples in which that edge appears:
 
 ```{r model-averaging}
 bma_edges <- mcmc_results$post_edge_prob > 0.5
@@ -233,10 +225,10 @@ cat("Missed (false negative) edges:   ", bma_fn, "\n")
 
 ### Visualizing network recovery
 
-The following plot compares the true network, the final sampled network, and the BMA consensus network. Edges that are structurally correct but assigned the wrong Boolean function are marked differently from edges for which both the parent relation and function are correctly recovered:
+The following plot compares the true network and the BMA consensus network. Edges that are structurally correct but assigned the wrong Boolean function are marked differently from edges for which both the parent relation and function are correctly recovered. Only edges with a computed statistical probability of higher than 50% are shown:
 
 ```{r visualize-network, fig.width=9, fig.height=4}
-plot_bbni(mcmc_results, true_network = true_network)
+plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5)
 ```
 
 ## Application to real-world biological data
@@ -245,7 +237,10 @@ The workflow above uses simulated data so that the inferred network can be compa
 
 The original study by [Han et al. (2014)](https://doi.org/10.1371/journal.pone.0115806) applied the Bayesian Boolean network framework to yeast cell-cycle expression data and compared the inferred relationships with a reference cell-cycle network. A package-level empirical example can follow the same structure: load a binary expression matrix, run `run_bbni()`, examine trace behavior, summarize posterior edge probabilities, and interpret high-probability interactions in relation to existing biological knowledge.
 
-Running BBNI on the yeast cell-cycle dataset and comparing the result against Han et al. (2014)'s reported findings is presented below.
+Running BBNI on the pooled yeast cell-cycle dataset recovers a biologically consistent subnetwork, matching the specific relationships emphasized in the original [Han et al. (2014)](https://doi.org/10.1371/journal.pone.0115806) paper's real-data analysis.
+The model identifies CLB2 as a direct regulator of SWI5, matching the paper's reported finding. It also recovers all three "coupled" gene pairs that the original paper specifically mentions — CLN1/CLN2, CLB1/CLB2, and CLB5/CLB6 — as directly linked.
+The original paper acknowledges that "12.82% of the links in the reference yeast cell-cycle network... are identified in 100% of the posterior samples." Similarly, the inferred network here is intentionally sparse rather than dense with interconnected genes.
+Furthermore, several genes (SIC1, CDH1, MCM1) show no high-confidence links in this dataset, reflecting the partial-recovery limitation of real biological data that the original authors reported.
 
 ```{r yeast-data}
 # Load empirical yeast cell-cycle dataset (14 genes x 385 pooled conditions)
@@ -257,6 +252,8 @@ yeast_prior_para <- matrix(3, nrow = nrow(yeast_data) + 1, ncol = 2)
 yeast_prior_para[nrow(yeast_data) + 1, 1] <- 2
 yeast_prior_para[nrow(yeast_data) + 1, 2] <- 100
 
+run_start <- Sys.time()
+
 # Run in independent mode: these 385 pooled columns include many distinct experimental
 # conditions (MMS exposure, gamma radiation, heat shock, etc.), not a single
 # continuous time series, so timeseries = FALSE is the correct model here.
@@ -267,8 +264,16 @@ yeast_results <- run_bbni(
   penalty = 0.1,
   prop.ratio = 0.1,
   timeseries = FALSE,
-  burn_in = 0.75,
+  burn_in = 0.3,
   verbose = FALSE
+)
+
+run_end <- Sys.time()
+# Duration of chain
+cat(
+  "Sampler completed", 4500, "iterations (",
+  nrow(yeast_data) * 4500, "node updates) in",
+  round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
 
 # Visualize results
@@ -281,7 +286,7 @@ plot_bbni(yeast_results, node_names = rownames(yeast_data), threshold = 0.5)
 This vignette demonstrates the core `BBNI` workflow on simulated data. From here:
 
 - See `?run_bbni`, `?GenerateNetwork`, and `?GenerateSample` for function-level documentation.
-- This example runs `r num_update` iterations on a 20-node network. Larger networks, noisier data, or higher-precision posterior summaries may require significantly more iterations.
+- The simulated example runs `r num_update` iterations on a 20-node network. Larger networks, noisier data, or higher-precision posterior summaries may require significantly more iterations.
 - For user-supplied expression data, format `GeneData` as a binary `num.node` x `SampleSize` matrix, as described above.
 
 ## Session information

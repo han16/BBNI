@@ -9,19 +9,15 @@
 #' @returns A binary matrix of the same dimensions as `incid_matrix`. An entry of 1 at (i, k) indicates that node i is an ancestor of node k through one or more directed edges.
 #' @noRd
 update_ancestor_matrix <- function(incid_matrix) {
-  ances_matrix <- incid_matrix
-  for (ii in seq_len(nrow(ances_matrix))) {
-    for (i in seq_len(nrow(ances_matrix))) {
-      for (j in seq_len(ncol(ances_matrix))) {
-        for (k in seq_len(nrow(ances_matrix))) {
-          if (ances_matrix[i, j] == 1 && ances_matrix[j, k] == 1) {
-            ances_matrix[i, k] <- 1
-          }
-        }
-      }
-    }
+  # BLAS matrix-power squaring can speed this up even more
+  n <- nrow(incid_matrix)
+  R <- incid_matrix
+  steps <- ceiling(log2(n))
+  for (s in seq_len(steps)) {
+    R <- (R %*% R + R) > 0
   }
-  return(ances_matrix)
+  storage.mode(R) <- "double"
+  return(R)
 }
 
 #' Check Ancestor Matrix for Cyclic Loops
