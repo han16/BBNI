@@ -38,60 +38,56 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
     p <- TRFUM[i, jj]
     InOutPair[[idx]] <- c(i, jj, p[length(p)])
   }
-  ii <- length(InOutPair)
+  n_nonroot <- length(InOutPair)
   mismatch <- 0
-  if (length(InOutPair) > 0) {
+  gene_row_sums <- rowSums(GeneData)
+  if (n_nonroot > 0) {
     for (i in seq_along(InOutPair)) {
-      if (InOutPair[[i]][length(InOutPair[[i]])] <= 10) {
-        in_node <- c(InOutPair[[i]][2], InOutPair[[i]][3])
-        out_node <- InOutPair[[i]][1]
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 1) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 2) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitAnd(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 3) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 4) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitOr(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 5) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(1 - GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 6) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitOr(GeneData[in_node[1], idx_parent], 1 - GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 7) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(1 - GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 8) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitAnd(GeneData[in_node[1], idx_parent], 1 - GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 9) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], bitXor(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 10) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - bitXor(GeneData[in_node[1], idx_parent], GeneData[in_node[2], idx_parent])))
-        }
+      # reduce need of constant list indexing / length calls
+      pair <- InOutPair[[i]]
+      rule <- pair[length(pair)]
+      out_node <- pair[1]
+      child <- GeneData[out_node, idx_child]
+      # handle node extraction based on the rule threshold
+      if (rule <= 10) {
+        parent1 <- GeneData[pair[2], idx_parent]
+        parent2 <- GeneData[pair[3], idx_parent]
+      } else {
+        parent1 <- GeneData[pair[2], idx_parent]
       }
-      if (InOutPair[[i]][length(InOutPair[[i]])] > 10) {
-        in_node <- InOutPair[[i]][2]
-        out_node <- InOutPair[[i]][1]
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 11) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], GeneData[in_node, idx_parent] ))
-        }
-        if (InOutPair[[i]][length(InOutPair[[i]])] == 12) {
-          mismatch <- mismatch + sum(bitXor(GeneData[out_node, idx_child], 1 - GeneData[in_node, idx_parent] ))
-        }
-      }
+      # switch case
+      mismatch <- mismatch + switch(rule,
+      # 1
+      sum(bitXor(child, bitAnd(parent1, parent2))),
+      # 2
+      sum(bitXor(child, 1 - bitAnd(parent1, parent2))),
+      # 3
+      sum(bitXor(child, bitOr(parent1, parent2))),
+      # 4
+      sum(bitXor(child, 1 - bitOr(parent1, parent2))),
+      # 5
+      sum(bitXor(child, bitOr(1 - parent1, parent2))),
+      # 6
+      sum(bitXor(child, bitOr(parent1, 1 - parent2))),
+      # 7
+      sum(bitXor(child, bitAnd(1 - parent1, parent2))),
+      # 8
+      sum(bitXor(child, bitAnd(parent1, 1 - parent2))),
+      # 9
+      sum(bitXor(child, bitXor(parent1, parent2))),
+      # 10
+      sum(bitXor(child, 1 - bitXor(parent1, parent2))),
+      # 11
+      sum(bitXor(child, parent1)),
+      # 12
+      sum(bitXor(child, 1 - parent1))
+      )
     }
   }
   pseudo_count <- 0.0001
   mismatch <- mismatch + pseudo_count
-  Perror <- mismatch / (ii * SampleSize + pseudo_count)
-  ErrorFactor <- mismatch * log(Perror) + (ii * SampleSize - mismatch + pseudo_count) * log(1 - Perror)
+  Perror <- mismatch / (n_nonroot * SampleSize + pseudo_count)
+  ErrorFactor <- mismatch * log(Perror) + (n_nonroot * SampleSize - mismatch + pseudo_count) * log(1 - Perror)
   ErrorPrior <- (prior_para[num.node + 1, 1] - 1) * log(Perror) + (prior_para[num.node + 1, 2] - 1) * log(1 - Perror)
   RootFactor <- numeric()
   RootPrior <- numeric()
@@ -104,47 +100,39 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
 
     RootPrior[i] <- (prior_para[root_node[i], 1] - 1) * log(succ_prob[i]) + (prior_para[root_node[i], 2] - 1) * log(1 - succ_prob[i])
   }
-  if (length(InOutPair) == 0) { # all nodes are root nodes
+  if (n_nonroot == 0) { # all nodes are root nodes
     likelihood <- sum(RootFactor)
     post_para <- sum(RootFactor) + sum(RootPrior)
     log_post_model <- 0
     for (i in seq_len(nrow(TRFUM))) {
-      nume <- lbeta(prior_para[i, 1] + sum(GeneData[i, ]), prior_para[i, 2] + SampleSize - sum(GeneData[i, ]))
+      nume <- lbeta(prior_para[i, 1] + gene_row_sums[i], prior_para[i, 2] + SampleSize - gene_row_sums[i])
       deno <- lbeta(prior_para[i, 1], prior_para[i, 2])
       log_post_model <- log_post_model + nume - deno
     }
-    log_post_model <- log_post_model + length(TRFUM[TRFUM > 0]) * log(penalty)
+    log_post_model <- log_post_model + length(TRFUM[TRFUM>0]) * log(penalty)
     ErrorFactor <- NA
     Perror <- NA
     mismatch <- NA
   }
-  if (length(InOutPair) > 0) { # exist non root nodes
+  if (n_nonroot > 0) { # exist non root nodes
     likelihood <- ErrorFactor + sum(RootFactor)
     post_para <- ErrorFactor + sum(RootFactor) + sum(RootPrior) + ErrorPrior
     log_post_model <- 0
     for (i in seq_along(root_node)) {
       index <- root_node[i]
-      nume <- lbeta(prior_para[index, 1] + sum(GeneData[index, ]), prior_para[index, 2] + SampleSize - sum(GeneData[index, ]))
+      nume <- lbeta(prior_para[index, 1] + gene_row_sums[index], prior_para[index, 2] + SampleSize - gene_row_sums[index])
       deno <- lbeta(prior_para[index, 1], prior_para[index, 2])
       log_post_model <- log_post_model + nume - deno
     }
-    noise_nume <- lbeta(mismatch + prior_para[num.node + 1, 1], length(InOutPair) * SampleSize - mismatch + prior_para[num.node + 1, 2])
+    noise_nume <- lbeta(mismatch + prior_para[num.node + 1, 1], n_nonroot * SampleSize - mismatch + prior_para[num.node + 1, 2])
     noise_deno <- lbeta(prior_para[num.node + 1, 1], prior_para[num.node + 1, 2])
     log_post_model <- log_post_model + noise_nume - noise_deno
-    log_post_model <- log_post_model + length(TRFUM[TRFUM > 0]) * log(penalty)
+    log_post_model <- log_post_model + length(TRFUM[TRFUM>0]) * log(penalty)
   }
   result <- list()
   result[[1]] <- c(ErrorFactor, RootFactor, likelihood, post_para, log_post_model)
   para_sample <- rep(NA, num.node)
-  for (i in 1:num.node) {
-    if (i %in% root_node) {
-      for (j in seq_along(root_node)) {
-        if (i == root_node[j]) {
-          para_sample[i] <- succ_prob[j]
-        }
-      }
-    }
-  }
+  para_sample[root_node] <- succ_prob
   result[[2]] <- c(para_sample, mismatch, Perror)
   return(result)
 }
