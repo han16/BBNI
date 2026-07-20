@@ -124,8 +124,8 @@ be recorded as binary (0/1) expression states.
 ## Running the MCMC sampler
 
 We next execute
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
-on the simulated data. The main arguments are:
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md) on
+the simulated data. The main arguments are:
 
 - `num_update` - total number of MCMC outer iterations.
 - `penalty` - structural-prior hyperparameter that penalizes graph
@@ -164,7 +164,7 @@ mcmc_results <- run_bbni(
 run_end <- Sys.time()
 ```
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 accepts a `verbose` argument (default `FALSE`) that displays a text
 progress bar during sampling; it’s left default here to keep the
 vignette clean.
@@ -176,7 +176,7 @@ cat(
   num_nodes * num_update, "node updates) in",
   round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
-#> Sampler completed 5000 iterations ( 1e+05 node updates) in 4.48 minutes
+#> Sampler completed 5000 iterations ( 1e+05 node updates) in 2.92 minutes
 ```
 
 As of v0.2.1, the MCMC sampler has been significantly optimized relative
@@ -186,7 +186,7 @@ minutes, a 92.9% reduction in runtime with numerically identical output.
 
 ## Analyzing the output
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 returns a list containing the sampled path of the Markov chain:
 
 - `log_posterior` - numeric vector of log-posterior values stored after
@@ -302,8 +302,8 @@ We first discard an initial burn-in period, here set to 75% of the
 recorded chain to match the burn-in convention used in [Han et
 al. (2014)](https://doi.org/10.1371/journal.pone.0115806)’s own
 simulation studies, instead of
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)’s
-own default `burn_in` value of 70%. This is to reduce the impact of the
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)’s own
+default `burn_in` value of 70%. This is to reduce the impact of the
 unpredictability of the arbitrary starting structure. We then retain one
 network per outer iteration (every `num.node` node-level updates) to
 account for the strong statistical dependence of within-iteration
@@ -359,7 +359,7 @@ Bayesian Boolean network framework to yeast cell-cycle expression data
 and compared the inferred relationships with a reference cell-cycle
 network. A package-level empirical example can follow the same
 structure: load a binary expression matrix, run
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md),
 examine trace behavior, summarize posterior edge probabilities, and
 interpret high-probability interactions in relation to existing
 biological knowledge.
@@ -414,7 +414,7 @@ cat(
   nrow(yeast_data) * 4500, "node updates) in",
   round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
-#> Sampler completed 4500 iterations ( 63000 node updates) in 2.71 minutes
+#> Sampler completed 4500 iterations ( 63000 node updates) in 1.49 minutes
 
 # Visualize results
 plot_trace(yeast_results)
@@ -438,11 +438,10 @@ plot of chunk yeast-data
 This vignette demonstrates the core `BBNI` workflow on simulated data.
 From here:
 
-- See
-  [`?run_bbni`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
-  [`?GenerateNetwork`](https://anson-li8.github.io/BBNI/reference/GenerateNetwork.md),
+- See [`?run_bbni`](https://han16.github.io/BBNI/reference/run_bbni.md),
+  [`?GenerateNetwork`](https://han16.github.io/BBNI/reference/GenerateNetwork.md),
   and
-  [`?GenerateSample`](https://anson-li8.github.io/BBNI/reference/GenerateSample.md)
+  [`?GenerateSample`](https://han16.github.io/BBNI/reference/GenerateSample.md)
   for function-level documentation.
 - The simulated example runs 5000 iterations on a 20-node network.
   Larger networks, noisier data, or higher-precision posterior summaries
@@ -463,9 +462,7 @@ sessionInfo()
 #>   LAPACK version 3.12.1
 #> 
 #> locale:
-#> [1] LC_COLLATE=Spanish_Latin America.utf8  LC_CTYPE=Spanish_Latin America.utf8   
-#> [3] LC_MONETARY=Spanish_Latin America.utf8 LC_NUMERIC=C                          
-#> [5] LC_TIME=Spanish_Latin America.utf8    
+#> [1] LC_COLLATE=Spanish_Latin America.utf8  LC_CTYPE=Spanish_Latin America.utf8    LC_MONETARY=Spanish_Latin America.utf8 LC_NUMERIC=C                           LC_TIME=Spanish_Latin America.utf8    
 #> 
 #> time zone: America/Chicago
 #> tzcode source: internal
@@ -474,16 +471,9 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] BBNI_0.2.0     testthat_3.3.2
+#> [1] BBNI_0.2.1
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] vctrs_0.7.3       cli_3.6.6         knitr_1.51        rlang_1.2.0      
-#>  [5] xfun_0.58         otel_0.2.0        purrr_1.2.2       pkgload_1.5.2    
-#>  [9] glue_1.8.1        rprojroot_2.1.1   htmltools_0.5.9   pkgbuild_1.4.8   
-#> [13] brio_1.1.5        rmarkdown_2.31    evaluate_1.0.5    bitops_1.0-9     
-#> [17] ellipsis_0.3.3    fastmap_1.2.0     yaml_2.3.12       lifecycle_1.0.5  
-#> [21] memoise_2.0.1     compiler_4.6.0    igraph_2.3.3      fs_2.1.0         
-#> [25] sessioninfo_1.2.4 pkgconfig_2.0.3   rstudioapi_0.18.0 digest_0.6.39    
-#> [29] R6_2.6.1          usethis_3.2.1     magrittr_2.0.5    tools_4.6.0      
-#> [33] devtools_2.5.2    desc_1.4.3        cachem_1.1.0
+#>  [1] compiler_4.6.0  magrittr_2.0.5  cli_3.6.6       tools_4.6.0     otel_0.2.0      igraph_2.3.3    knitr_1.51      xfun_0.60       lifecycle_1.0.5 pkgconfig_2.0.3 rlang_1.3.0     bitops_1.0-9   
+#> [13] evaluate_1.0.5
 ```
