@@ -49,8 +49,7 @@ sample_size <- 110
 # 1. Generate random DAG topology (T) and associated Boolean transition functions (F)
 true_network <- GenerateNetwork(num.node = num_nodes)
 # visualize "true" synthetic topology before inference
-true_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((true_network > 0) * 1), mode = "directed")) # for graph reproducibility
-plot_network(true_network, layout = true_layout)
+plot_network(true_network)
 ```
 
 ![plot of chunk simulate-data](figures/simulate-data-1.png)
@@ -129,12 +128,8 @@ We next execute
 the simulated data. The main arguments are:
 
 - `num_update` - total number of MCMC outer iterations.
-- `penalty` - structural-prior hyperparameter in \\(0, 1\]\\. Values
-  below `1` apply an edge-count penalty that favors sparser networks.
-  Setting `penalty = 1` disables the sparsity prior and instead uses a
-  uniform prior over valid topologies, matching [Han et
-  al. (2014)](https://doi.org/10.1371/journal.pone.0115806)’s original
-  model. The default value is `0.1` (used throughout this vignette)
+- `penalty` - structural-prior hyperparameter that penalizes graph
+  density and complexity.
 - `prop.ratio` - mixing weight for the proposal distribution;
   specifically, the probability of selecting the empirical proposal
   rather than a uniform random move.
@@ -181,7 +176,7 @@ cat(
   num_nodes * num_update, "node updates) in",
   round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
-#> Sampler completed 5000 iterations ( 1e+05 node updates) in 5.15 minutes
+#> Sampler completed 5000 iterations ( 1e+05 node updates) in 2.92 minutes
 ```
 
 As of v0.2.1, the MCMC sampler has been significantly optimized relative
@@ -251,8 +246,7 @@ The final sampled network can be visualized as follows:
 ``` r
 
 final_network <- tail(mcmc_results$networks, 1)[[1]]
-final_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((final_network > 0) * 1), mode = "directed")) # for graph reproducibility
-plot_network(final_network, layout = final_layout)
+plot_network(final_network)
 ```
 
 ![plot of chunk view-results](figures/view-results-1.png)
@@ -341,10 +335,7 @@ computed statistical probability of higher than 50% are shown:
 
 ``` r
 
-# ensure reproducibility of visualization
-combined_adj_layout <- ((mcmc_results$post_edge_prob > 0.5) | (true_network > 0)) * 1
-compare_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t(combined_adj_layout), mode = "directed"))
-plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5, layout = compare_layout)
+plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5)
 ```
 
 ![plot of chunk visualize-network](figures/visualize-network-1.png)
@@ -417,43 +408,30 @@ yeast_results <- run_bbni(
 )
 
 run_end <- Sys.time()
-```
-
-The time and number of iterations are outputted below:
-
-``` r
-
 # Duration of chain
 cat(
   "Sampler completed", 4500, "iterations (",
   nrow(yeast_data) * 4500, "node updates) in",
   round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
-#> Sampler completed 4500 iterations ( 63000 node updates) in 3.08 minutes
-```
-
-The results of the MCMC chain are visualized with the following trace
-plot and network plot:
-
-``` r
+#> Sampler completed 4500 iterations ( 63000 node updates) in 1.49 minutes
 
 # Visualize results
 plot_trace(yeast_results)
 ```
 
-![plot of chunk yeast-trace](figures/yeast-trace-1.png)
+![plot of chunk yeast-data](figures/yeast-data-1.png)
 
-plot of chunk yeast-trace
+plot of chunk yeast-data
 
 ``` r
 
-yeast_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((yeast_results$post_edge_prob > 0.5) * 1), mode = "directed")) # for graph reproducibility
-plot_bbni(yeast_results, node_names = rownames(yeast_data), threshold = 0.5, layout = yeast_layout)
+plot_bbni(yeast_results, node_names = rownames(yeast_data), threshold = 0.5)
 ```
 
-![plot of chunk yeast-plot](figures/yeast-plot-1.png)
+![plot of chunk yeast-data](figures/yeast-data-2.png)
 
-plot of chunk yeast-plot
+plot of chunk yeast-data
 
 ## Next steps
 
@@ -484,9 +462,7 @@ sessionInfo()
 #>   LAPACK version 3.12.1
 #> 
 #> locale:
-#> [1] LC_COLLATE=Spanish_Latin America.utf8  LC_CTYPE=C                             LC_MONETARY=Spanish_Latin America.utf8 LC_NUMERIC=C                          
-#> [5] LC_TIME=Spanish_Latin America.utf8    
-#> system code page: 65001
+#> [1] LC_COLLATE=Spanish_Latin America.utf8  LC_CTYPE=Spanish_Latin America.utf8    LC_MONETARY=Spanish_Latin America.utf8 LC_NUMERIC=C                           LC_TIME=Spanish_Latin America.utf8    
 #> 
 #> time zone: America/Chicago
 #> tzcode source: internal
@@ -495,13 +471,9 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] BBNI_0.2.1     testthat_3.3.2
+#> [1] BBNI_0.2.1
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] compiler_4.6.0    brio_1.1.5        xml2_1.5.2        bitops_1.0-9      callr_3.8.0       yaml_2.3.12       fastmap_1.2.0     R6_2.6.1         
-#>  [9] commonmark_2.0.0  igraph_2.3.3      knitr_1.51        tibble_3.3.1      desc_1.4.3        rprojroot_2.1.1   pillar_1.11.1     rlang_1.3.0      
-#> [17] cachem_1.1.0      roxygen2_8.0.0    xfun_0.60         fs_2.1.0          pkgload_1.5.3     otel_0.2.0        memoise_2.0.1     cli_3.6.6        
-#> [25] withr_3.0.3       magrittr_2.0.5    processx_3.9.0    digest_0.6.39     rstudioapi_0.18.0 devtools_2.5.2    lifecycle_1.0.5   waldo_0.6.2      
-#> [33] vctrs_0.7.3       evaluate_1.0.5    glue_1.8.1        sessioninfo_1.2.4 pkgbuild_1.4.8    rmarkdown_2.31    purrr_1.2.2       tools_4.6.0      
-#> [41] usethis_3.2.1     pkgconfig_2.0.3   ellipsis_0.3.3    htmltools_0.5.9
+#>  [1] compiler_4.6.0  magrittr_2.0.5  cli_3.6.6       tools_4.6.0     otel_0.2.0      igraph_2.3.3    knitr_1.51      xfun_0.60       lifecycle_1.0.5 pkgconfig_2.0.3 rlang_1.3.0     bitops_1.0-9   
+#> [13] evaluate_1.0.5
 ```
