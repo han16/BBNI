@@ -99,11 +99,8 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dt id="arg-num-update">num_update<a class="anchor" aria-label="anchor" href="#arg-num-update"></a></dt>
-<dd><p>An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.</p></dd>
-
-
-<dt id="arg-penalty">penalty<a class="anchor" aria-label="anchor" href="#arg-penalty"></a></dt>
-<dd><p>A numeric value representing the structural prior probability per edge used to penalize network complexity \(P(T)\). Defaults to 0.1 if not specified.</p></dd>
+<dd><p>An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.
+#' @param penalty Structural-prior hyperparameter in \((0, 1]\). A value of <code>1</code> corresponds to a uniform prior over valid network topologies; values below <code>1</code> apply an edge-count penalty that favors sparser networks. Defaults to 0.1 if not specified.</p></dd>
 
 
 <dt id="arg-prop-ratio">prop.ratio<a class="anchor" aria-label="anchor" href="#arg-prop-ratio"></a></dt>

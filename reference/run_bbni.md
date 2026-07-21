@@ -55,13 +55,11 @@ run_bbni(
 - num_update:
 
   An integer representing the total number of MCMC iterations to
-  perform. Defaults to 4000 if not specified.
-
-- penalty:
-
-  A numeric value representing the structural prior probability per edge
-  used to penalize network complexity \\P(T)\\. Defaults to 0.1 if not
-  specified.
+  perform. Defaults to 4000 if not specified. \#' @param penalty
+  Structural-prior hyperparameter in \\(0, 1\]\\. A value of `1`
+  corresponds to a uniform prior over valid network topologies; values
+  below `1` apply an edge-count penalty that favors sparser networks.
+  Defaults to 0.1 if not specified.
 
 - prop.ratio:
 
