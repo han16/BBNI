@@ -6,9 +6,10 @@ Acyclic Graph (DAG) topologies (\\T\\) and Boolean logic transition
 functions (\\F\\). The algorithm iterates through individual network
 nodes and proposes parent set mutations (edge additions, removals, or
 swaps) paired with transition function reassignments to one of 14
-candidate Boolean rules. Proposed states transitions are strictly
-verified to follow the DAG constraint and evaluated with a
-Metropolis-Hastings acceptance threshold using log-posterior values.
+candidate Boolean rules (stored as codes 1-12 in the transition matrix).
+Proposed states transitions are strictly verified to follow the DAG
+constraint and evaluated with a Metropolis-Hastings acceptance threshold
+using log-posterior values.
 
 ## Usage
 
@@ -20,7 +21,7 @@ run_bbni(
   prior_para = NULL,
   num_update = 4000,
   penalty = 0.1,
-  prop.ratio = 0.5,
+  prop.ratio = 0.1,
   verbose = FALSE,
   timeseries = TRUE,
   burn_in = 0.7
@@ -59,15 +60,17 @@ run_bbni(
 
 - penalty:
 
-  A numeric value representing the structural prior probability per edge
-  used to penalize network complexity \\P(T)\\. Defaults to 0.1 if not
-  specified.
+  Structural-prior hyperparameter in \\(0, 1\]\\. A value of `1`
+  corresponds to a uniform prior over valid network topologies; values
+  below `1` apply an edge-count penalty that favors sparser networks.
+  Defaults to 0.1 if not specified.
 
 - prop.ratio:
 
-  A numeric value between 0 and 1 representing the probability of
-  choosing a uniform proposal distribution over an empirical proposal
-  distribution at each iteration. Defaults to 0.5
+  A numeric value between 0 and 1 giving the final probability of using
+  the empirical proposal distribution after the first 10% of outer
+  iterations. During the first 10% of outer iterations, the empirical
+  proposal is used with probability 0.9. Defaults to 0.1.
 
 - verbose:
 
@@ -93,6 +96,12 @@ iteration). These represent samples drawn from the marginal posterior
 distribution \\P(T,F\|G)\\ used for Bayesian model averaging.
 Additionally, the `post_edge_prob` (matrix of marginal posterior edge
 probabilities) and `burn_in` ratio are returned in the list.
+
+## Details
+
+Posterior edge probabilities (`post_edge_prob`) are computed from one
+thinned sample per outer iteration (a full Gibbs sweep) after discarding
+`burn_in`, as designed in the original method paper.
 
 ## Examples
 

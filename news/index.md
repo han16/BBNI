@@ -1,5 +1,18 @@
 # Changelog
 
+## BBNI 0.2.2
+
+- Fixed time-series effective sample size calculation and user-defined
+  prop.ratio behavior
+- Implemented posterior thinning in run_bbni() to align with original
+  paper methodology and added trace display thinning in plot_trace()
+- Removed bitops package dependency in favor of base R bitwise functions
+- Improved performance via vectorization in check_ances_matrix() and
+  ProposalConstruction()
+- Fixed node/label scaling issues in plot_bbni() for custom gene names
+- Expanded vignette with reproducible yeast analysis and clarified model
+  assumptions
+
 ## BBNI 0.2.1
 
 - Major performance optimization: ~14x speedup via vectorization in

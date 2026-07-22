@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">BBNI</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>BBNI is a Bayesian approach to Boolean gene regulatory network inference from noisy gene expression data. The method is discussed in more detail in <a href="https://doi.org/10.1371/journal.pone.0115806" class="external-link">Han et al. (2014)</a>. Unlike methods that return a single best-fit network topology, such as REVEAL and BFE, found in <a href="https://cran.r-project.org/package=BoolNet" class="external-link">BoolNet</a>, BBNI uses Markov chain Monte Carlo (MCMC) to sample from a joint posterior distribution of network topologies and Boolean transition functions. BBNI deliberately takes biological noise into account and allows for summarization (such as Bayesian model averaging, or BMA) that stabilizes results through posterior edge probabilities rather than a single point estimate.</p>
+<p>BBNI (<u>B</u>ayesian <u>B</u>oolean <u>N</u>etwork <u>I</u>nference) is a Bayesian approach to Boolean gene regulatory network inference from noisy gene expression data. The method is discussed in more detail in <a href="https://doi.org/10.1371/journal.pone.0115806" class="external-link">Han et al. (2014)</a>. Unlike methods that return a single best-fit network topology, such as REVEAL and BFE, found in <a href="https://cran.r-project.org/package=BoolNet" class="external-link">BoolNet</a>, BBNI uses Markov chain Monte Carlo (MCMC) to sample from a joint posterior distribution of network topologies and Boolean transition functions. BBNI deliberately takes biological noise into account and allows for summarization (such as Bayesian model averaging, or BMA) that stabilizes results through posterior edge probabilities rather than a single point estimate.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -73,7 +73,7 @@
 <div class="section level2">
 <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
 </h2>
-<p>BBNI’s MCMC sampler was significantly optimized after the initial CRAN release. On a benchmark 5000-iteration run (the vignette simulation): <strong>62.75 minutes -&gt; 4.48 minutes (92.9% less time)</strong>, with identical numerical output.</p>
+<p>BBNI’s MCMC sampler was significantly optimized after the initial CRAN release. Controlled benchmarks show roughly a 10-fold speedup for 20-node networks; exact runtimes depend on hardware and system load.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>

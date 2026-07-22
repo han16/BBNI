@@ -9,13 +9,13 @@
 from the joint posterior distribution of Directed Acyclic Graph (DAG) topologies (\(T\)) and
 Boolean logic transition functions (\(F\)). The algorithm iterates through individual
 network nodes and proposes parent set mutations (edge additions, removals, or swaps)
-paired with transition function reassignments to one of 14 candidate Boolean rules.
+paired with transition function reassignments to one of 14 candidate Boolean rules (stored as codes 1-12 in the transition matrix).
 Proposed states transitions are strictly verified to follow the DAG constraint and
 evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values."><meta property="og:description" content="Executes a Metropolis-within-Gibbs Markov chain Monte Carlo (MCMC) algorithm to sample
 from the joint posterior distribution of Directed Acyclic Graph (DAG) topologies (\(T\)) and
 Boolean logic transition functions (\(F\)). The algorithm iterates through individual
 network nodes and proposes parent set mutations (edge additions, removals, or swaps)
-paired with transition function reassignments to one of 14 candidate Boolean rules.
+paired with transition function reassignments to one of 14 candidate Boolean rules (stored as codes 1-12 in the transition matrix).
 Proposed states transitions are strictly verified to follow the DAG constraint and
 evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
     <a class="navbar-brand me-2" href="../index.html">BBNI</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 from the joint posterior distribution of Directed Acyclic Graph (DAG) topologies (\(T\)) and
 Boolean logic transition functions (\(F\)). The algorithm iterates through individual
 network nodes and proposes parent set mutations (edge additions, removals, or swaps)
-paired with transition function reassignments to one of 14 candidate Boolean rules.
+paired with transition function reassignments to one of 14 candidate Boolean rules (stored as codes 1-12 in the transition matrix).
 Proposed states transitions are strictly verified to follow the DAG constraint and
 evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values.</p>
     </div>
@@ -71,7 +71,7 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 <span>  prior_para <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  num_update <span class="op">=</span> <span class="fl">4000</span>,</span>
 <span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  prop.ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  prop.ratio <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  timeseries <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  burn_in <span class="op">=</span> <span class="fl">0.7</span></span>
@@ -103,11 +103,11 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
 
 
 <dt id="arg-penalty">penalty<a class="anchor" aria-label="anchor" href="#arg-penalty"></a></dt>
-<dd><p>A numeric value representing the structural prior probability per edge used to penalize network complexity \(P(T)\). Defaults to 0.1 if not specified.</p></dd>
+<dd><p>Structural-prior hyperparameter in \((0, 1]\). A value of <code>1</code> corresponds to a uniform prior over valid network topologies; values below <code>1</code> apply an edge-count penalty that favors sparser networks. Defaults to 0.1 if not specified.</p></dd>
 
 
 <dt id="arg-prop-ratio">prop.ratio<a class="anchor" aria-label="anchor" href="#arg-prop-ratio"></a></dt>
-<dd><p>A numeric value between 0 and 1 representing the probability of choosing a uniform proposal distribution over an empirical proposal distribution at each iteration. Defaults to 0.5</p></dd>
+<dd><p>A numeric value between 0 and 1 giving the final probability of using the empirical proposal distribution after the first 10% of outer iterations. During the first 10% of outer iterations, the empirical proposal is used with probability 0.9. Defaults to 0.1.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -125,6 +125,12 @@ evaluated with a Metropolis-Hastings acceptance threshold using log-posterior va
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing the full trajectory of the MCMC chain. Specifically, <code>networks</code> (a list of sampled transition function matrices) and <code>log_posterior</code> (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \(P(T,F|G)\) used for Bayesian model averaging. Additionally, the <code>post_edge_prob</code> (matrix of marginal posterior edge probabilities) and <code>burn_in</code> ratio are returned in the list.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Posterior edge probabilities (<code>post_edge_prob</code>) are computed from one
+thinned sample per outer iteration (a full Gibbs sweep) after discarding
+<code>burn_in</code>, as designed in the original method paper.</p>
     </div>
 
     <div class="section level2">

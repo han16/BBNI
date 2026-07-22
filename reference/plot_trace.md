@@ -8,7 +8,7 @@ be utilized for edge-probability calculations.
 ## Usage
 
 ``` r
-plot_trace(results)
+plot_trace(results, every = 1)
 ```
 
 ## Arguments
@@ -18,6 +18,12 @@ plot_trace(results)
   The list returned by
   [`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md),
   containing `networks` and `log_posterior`.
+
+- every:
+
+  An integer specifying the thinning interval (sampling frequency) for
+  plotting. Default is 1, which plots all log-posterior values. Values
+  greater than 1 plot every `every`-th iteration.
 
 ## Value
 

@@ -18,10 +18,12 @@ directed acyclic graph (DAG) topologies and their corresponding Boolean
 logic functions.
 
 This vignette presents an example simulated workflow utilizing the
-package. That is, simulating a noisy dataset from an initial topology
-and transition functions; running the implemented MCMC sampler; and
-lastly, running various evaluation tests to determine how well the
-algorithm recovered the original topology and Boolean functions.
+package: simulating a noisy dataset from an initial topology and
+transition functions, running the implemented MCMC sampler, and
+evaluating how well the algorithm recovered the original topology and
+Boolean functions. The method assumes binary data, a directed acyclic
+graph, and a maximum in-degree of two; noise is modeled as independent
+Bernoulli bit flips.
 
 ## Setup and simulation
 
@@ -49,7 +51,8 @@ sample_size <- 110
 # 1. Generate random DAG topology (T) and associated Boolean transition functions (F)
 true_network <- GenerateNetwork(num.node = num_nodes)
 # visualize "true" synthetic topology before inference
-plot_network(true_network)
+true_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((true_network > 0) * 1), mode = "directed")) # for graph reproducibility
+plot_network(true_network, layout = true_layout)
 ```
 
 ![plot of chunk simulate-data](figures/simulate-data-1.png)
@@ -128,11 +131,15 @@ We next execute
 the simulated data. The main arguments are:
 
 - `num_update` - total number of MCMC outer iterations.
-- `penalty` - structural-prior hyperparameter that penalizes graph
-  density and complexity.
-- `prop.ratio` - mixing weight for the proposal distribution;
-  specifically, the probability of selecting the empirical proposal
-  rather than a uniform random move.
+- `penalty` - structural-prior hyperparameter in \\(0, 1\]\\. Values
+  below `1` apply an edge-count penalty that favors sparser networks.
+  Setting `penalty = 1` disables the sparsity prior and instead uses a
+  uniform prior over valid topologies, matching [Han et
+  al. (2014)](https://doi.org/10.1371/journal.pone.0115806)’s original
+  model. The default value is `0.1` (used throughout this vignette)
+- `prop.ratio` - final probability of selecting the empirical proposal
+  after the first 10% of outer iterations. During the first 10% of outer
+  iterations, the empirical proposal is used with probability 0.9.
 - `prior_para` - hyperparameter matrix in which the first `n` rows
   define Beta prior parameters for root-node Bernoulli activation
   probabilities; row `n+1` sets the prior parameters for the global
@@ -176,13 +183,13 @@ cat(
   num_nodes * num_update, "node updates) in",
   round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
 )
-#> Sampler completed 5000 iterations ( 1e+05 node updates) in 2.92 minutes
+#> Sampler completed 5000 iterations ( 1e+05 node updates) in 2.04 minutes
 ```
 
-As of v0.2.1, the MCMC sampler has been significantly optimized relative
-to the original CRAN release (v0.1.1). A parallel benchmark on this
-exact 5000-iteration workflow completed in 4.48 minutes versus 62.75
-minutes, a 92.9% reduction in runtime with numerically identical output.
+As of v0.2.2, the MCMC sampler has been substantially optimized relative
+to the original CRAN release (v0.1.1). Controlled benchmarks show
+roughly a 10-fold speedup for 20-node networks; exact runtimes depend on
+hardware and system load.
 
 ## Analyzing the output
 
@@ -246,7 +253,8 @@ The final sampled network can be visualized as follows:
 ``` r
 
 final_network <- tail(mcmc_results$networks, 1)[[1]]
-plot_network(final_network)
+final_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((final_network > 0) * 1), mode = "directed")) # for graph reproducibility
+plot_network(final_network, layout = final_layout)
 ```
 
 ![plot of chunk view-results](figures/view-results-1.png)
@@ -335,7 +343,10 @@ computed statistical probability of higher than 50% are shown:
 
 ``` r
 
-plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5)
+# ensure reproducibility of visualization
+combined_adj_layout <- ((mcmc_results$post_edge_prob > 0.5) | (true_network > 0)) * 1
+compare_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t(combined_adj_layout), mode = "directed"))
+plot_bbni(mcmc_results, true_network = true_network, threshold = 0.5, layout = compare_layout)
 ```
 
 ![plot of chunk visualize-network](figures/visualize-network-1.png)
@@ -364,6 +375,73 @@ examine trace behavior, summarize posterior edge probabilities, and
 interpret high-probability interactions in relation to existing
 biological knowledge.
 
+``` r
+
+# Load the included binary yeast cell-cycle data (14 genes x 385 complete pooled
+# conditions); see ?yeast_data for source and preprocessing details.
+data("yeast_data")
+
+# Use same priors as earlier simulated example
+yeast_prior_para <- matrix(3, nrow = nrow(yeast_data) + 1, ncol = 2)
+yeast_prior_para[nrow(yeast_data) + 1, 1] <- 2
+yeast_prior_para[nrow(yeast_data) + 1, 2] <- 100
+
+set.seed(303)
+run_start <- Sys.time()
+
+# Run in independent mode: these 385 pooled columns include many distinct experimental
+# conditions (MMS exposure, gamma radiation, heat shock, etc.), not a single
+# continuous time series, so timeseries = FALSE is the correct model here.
+yeast_results <- run_bbni(
+  GeneData = yeast_data,
+  prior_para = yeast_prior_para,
+  num_update = 10000,
+  penalty = 0.1,
+  prop.ratio = 0.1,
+  timeseries = FALSE,
+  burn_in = 0.3,
+  verbose = FALSE
+)
+
+run_end <- Sys.time()
+```
+
+The time and number of iterations are outputted below:
+
+``` r
+
+# Duration of chain
+cat(
+  "Sampler completed", 10000, "iterations (",
+  nrow(yeast_data) * 10000, "node updates) in",
+  round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
+)
+#> Sampler completed 10000 iterations ( 140000 node updates) in 2.04 minutes
+```
+
+The results of the MCMC chain are visualized with the following trace
+plot and network plot:
+
+``` r
+
+# Visualize results
+plot_trace(yeast_results, every = nrow(yeast_data))
+```
+
+![plot of chunk yeast-trace](figures/yeast-trace-1.png)
+
+plot of chunk yeast-trace
+
+``` r
+
+yeast_layout <- igraph::layout_with_fr(igraph::graph_from_adjacency_matrix(t((yeast_results$post_edge_prob > 0.5) * 1), mode = "directed")) # for graph reproducibility
+plot_bbni(yeast_results, node_names = rownames(yeast_data), threshold = 0.5, layout = yeast_layout)
+```
+
+![plot of chunk yeast-plot](figures/yeast-plot-1.png)
+
+plot of chunk yeast-plot
+
 Running BBNI on the pooled yeast cell-cycle dataset recovers a
 biologically consistent subnetwork, matching the specific relationships
 emphasized in the original [Han et
@@ -380,59 +458,6 @@ MCM1) show no high-confidence links in this dataset, reflecting the
 partial-recovery limitation of real biological data that the original
 authors reported.
 
-``` r
-
-# Load empirical yeast cell-cycle dataset (14 genes x 385 pooled conditions)
-# from the original Han et al. 2014 paper
-data("yeast_data")
-
-# Use same priors as earlier simulated example
-yeast_prior_para <- matrix(3, nrow = nrow(yeast_data) + 1, ncol = 2)
-yeast_prior_para[nrow(yeast_data) + 1, 1] <- 2
-yeast_prior_para[nrow(yeast_data) + 1, 2] <- 100
-
-run_start <- Sys.time()
-
-# Run in independent mode: these 385 pooled columns include many distinct experimental
-# conditions (MMS exposure, gamma radiation, heat shock, etc.), not a single
-# continuous time series, so timeseries = FALSE is the correct model here.
-yeast_results <- run_bbni(
-  GeneData = yeast_data,
-  prior_para = yeast_prior_para,
-  num_update = 4500,
-  penalty = 0.1,
-  prop.ratio = 0.1,
-  timeseries = FALSE,
-  burn_in = 0.3,
-  verbose = FALSE
-)
-
-run_end <- Sys.time()
-# Duration of chain
-cat(
-  "Sampler completed", 4500, "iterations (",
-  nrow(yeast_data) * 4500, "node updates) in",
-  round(as.numeric(difftime(run_end, run_start, units = "mins")), 2), "minutes\n"
-)
-#> Sampler completed 4500 iterations ( 63000 node updates) in 1.49 minutes
-
-# Visualize results
-plot_trace(yeast_results)
-```
-
-![plot of chunk yeast-data](figures/yeast-data-1.png)
-
-plot of chunk yeast-data
-
-``` r
-
-plot_bbni(yeast_results, node_names = rownames(yeast_data), threshold = 0.5)
-```
-
-![plot of chunk yeast-data](figures/yeast-data-2.png)
-
-plot of chunk yeast-data
-
 ## Next steps
 
 This vignette demonstrates the core `BBNI` workflow on simulated data.
@@ -448,6 +473,9 @@ From here:
   may require significantly more iterations.
 - For user-supplied expression data, format `GeneData` as a binary
   `num.node` x `SampleSize` matrix, as described above.
+- The current model assumes binary data, a directed acyclic graph, and
+  maximum in-degree two. For real data, run multiple chains or
+  sensitivity analysis when possible.
 
 ## Session information
 
@@ -471,9 +499,9 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] BBNI_0.2.1
+#> [1] BBNI_0.2.2
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] compiler_4.6.0  magrittr_2.0.5  cli_3.6.6       tools_4.6.0     otel_0.2.0      igraph_2.3.3    knitr_1.51      xfun_0.60       lifecycle_1.0.5 pkgconfig_2.0.3 rlang_1.3.0     bitops_1.0-9   
-#> [13] evaluate_1.0.5
+#>  [1] igraph_2.3.3    R6_2.6.1        xfun_0.60       magrittr_2.0.5  knitr_1.51      pkgconfig_2.0.3 lifecycle_1.0.5 ps_1.9.3        cli_3.6.6       processx_3.9.0  pak_0.10.0      callr_3.7.6    
+#> [13] compiler_4.6.0  tools_4.6.0     evaluate_1.0.5  otel_0.2.0      rlang_1.3.0
 ```

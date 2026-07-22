@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">BBNI</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,10 +81,12 @@ Carlo (MCMC) process, the <code>BBNI</code> sampler is able to estimate
 the posterior distribution of valid directed acyclic graph (DAG)
 topologies and their corresponding Boolean logic functions.</p>
 <p>This vignette presents an example simulated workflow utilizing the
-package. That is, simulating a noisy dataset from an initial topology
-and transition functions; running the implemented MCMC sampler; and
-lastly, running various evaluation tests to determine how well the
-algorithm recovered the original topology and Boolean functions.</p>
+package: simulating a noisy dataset from an initial topology and
+transition functions, running the implemented MCMC sampler, and
+evaluating how well the algorithm recovered the original topology and
+Boolean functions. The method assumes binary data, a directed acyclic
+graph, and a maximum in-degree of two; noise is modeled as independent
+Bernoulli bit flips.</p>
 </div>
 <div class="section level2">
 <h2 id="setup-and-simulation">Setup and simulation<a class="anchor" aria-label="anchor" href="#setup-and-simulation"></a>
@@ -107,7 +109,8 @@ structure and the Boolean transition functions.</p>
 <span><span class="co"># 1. Generate random DAG topology (T) and associated Boolean transition functions (F)</span></span>
 <span><span class="va">true_network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GenerateNetwork.html">GenerateNetwork</a></span><span class="op">(</span>num.node <span class="op">=</span> <span class="va">num_nodes</span><span class="op">)</span></span>
 <span><span class="co"># visualize "true" synthetic topology before inference</span></span>
-<span><span class="fu"><a href="../reference/plot_network.html">plot_network</a></span><span class="op">(</span><span class="va">true_network</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">true_layout</span> <span class="op">&lt;-</span> <span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/layout_with_fr.html" class="external-link">layout_with_fr</a></span><span class="op">(</span><span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/graph_from_adjacency_matrix.html" class="external-link">graph_from_adjacency_matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">(</span><span class="va">true_network</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">)</span>, mode <span class="op">=</span> <span class="st">"directed"</span><span class="op">)</span><span class="op">)</span> <span class="co"># for graph reproducibility</span></span>
+<span><span class="fu"><a href="../reference/plot_network.html">plot_network</a></span><span class="op">(</span><span class="va">true_network</span>, layout <span class="op">=</span> <span class="va">true_layout</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/simulate-data-1.png" alt="plot of chunk simulate-data"><div class="figcaption">plot of chunk simulate-data</div>
 </div>
@@ -187,12 +190,17 @@ main arguments are:</p>
 <code>num_update</code> - total number of MCMC outer
 iterations.</li>
 <li>
-<code>penalty</code> - structural-prior hyperparameter that
-penalizes graph density and complexity.</li>
+<code>penalty</code> - structural-prior hyperparameter in <span class="math inline">\((0, 1]\)</span>. Values below <code>1</code> apply
+an edge-count penalty that favors sparser networks. Setting
+<code>penalty = 1</code> disables the sparsity prior and instead uses a
+uniform prior over valid topologies, matching <a href="https://doi.org/10.1371/journal.pone.0115806" class="external-link">Han et
+al. (2014)</a>’s original model. The default value is <code>0.1</code>
+(used throughout this vignette)</li>
 <li>
-<code>prop.ratio</code> - mixing weight for the proposal
-distribution; specifically, the probability of selecting the empirical
-proposal rather than a uniform random move.</li>
+<code>prop.ratio</code> - final probability of selecting the
+empirical proposal after the first 10% of outer iterations. During the
+first 10% of outer iterations, the empirical proposal is used with
+probability 0.9.</li>
 <li>
 <code>prior_para</code> - hyperparameter matrix in which the first
 <code>n</code> rows define Beta prior parameters for root-node Bernoulli
@@ -235,12 +243,11 @@ sampling; it’s left default here to keep the vignette clean.</p>
 <span>  <span class="va">num_nodes</span> <span class="op">*</span> <span class="va">num_update</span>, <span class="st">"node updates) in"</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">run_end</span>, <span class="va">run_start</span>, units <span class="op">=</span> <span class="st">"mins"</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"minutes\n"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Sampler completed 5000 iterations ( 1e+05 node updates) in 2.92 minutes</span></span></code></pre></div>
-<p>As of v0.2.1, the MCMC sampler has been significantly optimized
-relative to the original CRAN release (v0.1.1). A parallel benchmark on
-this exact 5000-iteration workflow completed in 4.48 minutes versus
-62.75 minutes, a 92.9% reduction in runtime with numerically identical
-output.</p>
+<span><span class="co">#&gt; Sampler completed 5000 iterations ( 1e+05 node updates) in 2.04 minutes</span></span></code></pre></div>
+<p>As of v0.2.2, the MCMC sampler has been substantially optimized
+relative to the original CRAN release (v0.1.1). Controlled benchmarks
+show roughly a 10-fold speedup for 20-node networks; exact runtimes
+depend on hardware and system load.</p>
 </div>
 <div class="section level2">
 <h2 id="analyzing-the-output">Analyzing the output<a class="anchor" aria-label="anchor" href="#analyzing-the-output"></a>
@@ -306,7 +313,8 @@ Boolean functions is not expected from a single posterior sample.</p>
 <p>The final sampled network can be visualized as follows:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">final_network</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">$</span><span class="va">networks</span>, <span class="fl">1</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="fu"><a href="../reference/plot_network.html">plot_network</a></span><span class="op">(</span><span class="va">final_network</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">final_layout</span> <span class="op">&lt;-</span> <span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/layout_with_fr.html" class="external-link">layout_with_fr</a></span><span class="op">(</span><span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/graph_from_adjacency_matrix.html" class="external-link">graph_from_adjacency_matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">(</span><span class="va">final_network</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">)</span>, mode <span class="op">=</span> <span class="st">"directed"</span><span class="op">)</span><span class="op">)</span> <span class="co"># for graph reproducibility</span></span>
+<span><span class="fu"><a href="../reference/plot_network.html">plot_network</a></span><span class="op">(</span><span class="va">final_network</span>, layout <span class="op">=</span> <span class="va">final_layout</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/view-results-1.png" alt="plot of chunk view-results"><div class="figcaption">plot of chunk view-results</div>
 </div>
@@ -384,7 +392,10 @@ Boolean function are marked differently from edges for which both the
 parent relation and function are correctly recovered. Only edges with a
 computed statistical probability of higher than 50% are shown:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_bbni.html">plot_bbni</a></span><span class="op">(</span><span class="va">mcmc_results</span>, true_network <span class="op">=</span> <span class="va">true_network</span>, threshold <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># ensure reproducibility of visualization</span></span>
+<span><span class="va">combined_adj_layout</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">(</span><span class="va">mcmc_results</span><span class="op">$</span><span class="va">post_edge_prob</span> <span class="op">&gt;</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">|</span> <span class="op">(</span><span class="va">true_network</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span></span>
+<span><span class="va">compare_layout</span> <span class="op">&lt;-</span> <span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/layout_with_fr.html" class="external-link">layout_with_fr</a></span><span class="op">(</span><span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/graph_from_adjacency_matrix.html" class="external-link">graph_from_adjacency_matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">combined_adj_layout</span><span class="op">)</span>, mode <span class="op">=</span> <span class="st">"directed"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_bbni.html">plot_bbni</a></span><span class="op">(</span><span class="va">mcmc_results</span>, true_network <span class="op">=</span> <span class="va">true_network</span>, threshold <span class="op">=</span> <span class="fl">0.5</span>, layout <span class="op">=</span> <span class="va">compare_layout</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/visualize-network-1.png" alt="plot of chunk visualize-network"><div class="figcaption">plot of chunk visualize-network</div>
 </div>
@@ -409,6 +420,57 @@ follow the same structure: load a binary expression matrix, run
 <code><a href="../reference/run_bbni.html">run_bbni()</a></code>, examine trace behavior, summarize posterior
 edge probabilities, and interpret high-probability interactions in
 relation to existing biological knowledge.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load the included binary yeast cell-cycle data (14 genes x 385 complete pooled</span></span>
+<span><span class="co"># conditions); see ?yeast_data for source and preprocessing details.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"yeast_data"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Use same priors as earlier simulated example</span></span>
+<span><span class="va">yeast_prior_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">3</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">yeast_prior_para</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
+<span><span class="va">yeast_prior_para</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">303</span><span class="op">)</span></span>
+<span><span class="va">run_start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run in independent mode: these 385 pooled columns include many distinct experimental</span></span>
+<span><span class="co"># conditions (MMS exposure, gamma radiation, heat shock, etc.), not a single</span></span>
+<span><span class="co"># continuous time series, so timeseries = FALSE is the correct model here.</span></span>
+<span><span class="va">yeast_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_bbni.html">run_bbni</a></span><span class="op">(</span></span>
+<span>  GeneData <span class="op">=</span> <span class="va">yeast_data</span>,</span>
+<span>  prior_para <span class="op">=</span> <span class="va">yeast_prior_para</span>,</span>
+<span>  num_update <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  prop.ratio <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  timeseries <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  burn_in <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">run_end</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The time and number of iterations are outputted below:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Duration of chain</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Sampler completed"</span>, <span class="fl">10000</span>, <span class="st">"iterations ("</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">*</span> <span class="fl">10000</span>, <span class="st">"node updates) in"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">run_end</span>, <span class="va">run_start</span>, units <span class="op">=</span> <span class="st">"mins"</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"minutes\n"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Sampler completed 10000 iterations ( 140000 node updates) in 2.04 minutes</span></span></code></pre></div>
+<p>The results of the MCMC chain are visualized with the following trace
+plot and network plot:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Visualize results</span></span>
+<span><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">yeast_results</span>, every <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/yeast-trace-1.png" alt="plot of chunk yeast-trace"><div class="figcaption">plot of chunk yeast-trace</div>
+</div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">yeast_layout</span> <span class="op">&lt;-</span> <span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/layout_with_fr.html" class="external-link">layout_with_fr</a></span><span class="op">(</span><span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/graph_from_adjacency_matrix.html" class="external-link">graph_from_adjacency_matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">(</span><span class="va">yeast_results</span><span class="op">$</span><span class="va">post_edge_prob</span> <span class="op">&gt;</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1</span><span class="op">)</span>, mode <span class="op">=</span> <span class="st">"directed"</span><span class="op">)</span><span class="op">)</span> <span class="co"># for graph reproducibility</span></span>
+<span><span class="fu"><a href="../reference/plot_bbni.html">plot_bbni</a></span><span class="op">(</span><span class="va">yeast_results</span>, node_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span>, threshold <span class="op">=</span> <span class="fl">0.5</span>, layout <span class="op">=</span> <span class="va">yeast_layout</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="figures/yeast-plot-1.png" alt="plot of chunk yeast-plot"><div class="figcaption">plot of chunk yeast-plot</div>
+</div>
 <p>Running BBNI on the pooled yeast cell-cycle dataset recovers a
 biologically consistent subnetwork, matching the specific relationships
 emphasized in the original <a href="https://doi.org/10.1371/journal.pone.0115806" class="external-link">Han et
@@ -423,51 +485,6 @@ intentionally sparse rather than dense with interconnected genes.
 Furthermore, several genes (SIC1, CDH1, MCM1) show no high-confidence
 links in this dataset, reflecting the partial-recovery limitation of
 real biological data that the original authors reported.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load empirical yeast cell-cycle dataset (14 genes x 385 pooled conditions)</span></span>
-<span><span class="co"># from the original Han et al. 2014 paper</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"yeast_data"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Use same priors as earlier simulated example</span></span>
-<span><span class="va">yeast_prior_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">3</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">yeast_prior_para</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span><span class="va">yeast_prior_para</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
-<span></span>
-<span><span class="va">run_start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Run in independent mode: these 385 pooled columns include many distinct experimental</span></span>
-<span><span class="co"># conditions (MMS exposure, gamma radiation, heat shock, etc.), not a single</span></span>
-<span><span class="co"># continuous time series, so timeseries = FALSE is the correct model here.</span></span>
-<span><span class="va">yeast_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_bbni.html">run_bbni</a></span><span class="op">(</span></span>
-<span>  GeneData <span class="op">=</span> <span class="va">yeast_data</span>,</span>
-<span>  prior_para <span class="op">=</span> <span class="va">yeast_prior_para</span>,</span>
-<span>  num_update <span class="op">=</span> <span class="fl">4500</span>,</span>
-<span>  penalty <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  prop.ratio <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  timeseries <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  burn_in <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">run_end</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co"># Duration of chain</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span></span>
-<span>  <span class="st">"Sampler completed"</span>, <span class="fl">4500</span>, <span class="st">"iterations ("</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span> <span class="op">*</span> <span class="fl">4500</span>, <span class="st">"node updates) in"</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">run_end</span>, <span class="va">run_start</span>, units <span class="op">=</span> <span class="st">"mins"</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"minutes\n"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Sampler completed 4500 iterations ( 63000 node updates) in 1.49 minutes</span></span>
-<span></span>
-<span><span class="co"># Visualize results</span></span>
-<span><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">yeast_results</span><span class="op">)</span></span></code></pre></div>
-<div class="float">
-<img src="figures/yeast-data-1.png" alt="plot of chunk yeast-data"><div class="figcaption">plot of chunk yeast-data</div>
-</div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_bbni.html">plot_bbni</a></span><span class="op">(</span><span class="va">yeast_results</span>, node_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">yeast_data</span><span class="op">)</span>, threshold <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
-<div class="float">
-<img src="figures/yeast-data-2.png" alt="plot of chunk yeast-data"><div class="figcaption">plot of chunk yeast-data</div>
-</div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
@@ -483,12 +500,15 @@ may require significantly more iterations.</li>
 <li>For user-supplied expression data, format <code>GeneData</code> as a
 binary <code>num.node</code> x <code>SampleSize</code> matrix, as
 described above.</li>
+<li>The current model assumes binary data, a directed acyclic graph, and
+maximum in-degree two. For real data, run multiple chains or sensitivity
+analysis when possible.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.6.0 (2026-04-24 ucrt)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
@@ -507,11 +527,11 @@ described above.</li>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] BBNI_0.2.1</span></span>
+<span><span class="co">#&gt; [1] BBNI_0.2.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] compiler_4.6.0  magrittr_2.0.5  cli_3.6.6       tools_4.6.0     otel_0.2.0      igraph_2.3.3    knitr_1.51      xfun_0.60       lifecycle_1.0.5 pkgconfig_2.0.3 rlang_1.3.0     bitops_1.0-9   </span></span>
-<span><span class="co">#&gt; [13] evaluate_1.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] igraph_2.3.3    R6_2.6.1        xfun_0.60       magrittr_2.0.5  knitr_1.51      pkgconfig_2.0.3 lifecycle_1.0.5 ps_1.9.3        cli_3.6.6       processx_3.9.0  pak_0.10.0      callr_3.7.6    </span></span>
+<span><span class="co">#&gt; [13] compiler_4.6.0  tools_4.6.0     evaluate_1.0.5  otel_0.2.0      rlang_1.3.0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
