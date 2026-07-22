@@ -1,6 +1,6 @@
 Package: BBNI
 Title: Bayesian Inference of Boolean Genetic Networks
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(
     person(given = "Anson", family = "Li",
            email = "liyuanrui618@gmail.com",
@@ -20,7 +20,6 @@ Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
 Imports: 
-    bitops,
     stats,
     igraph
 Suggests: 

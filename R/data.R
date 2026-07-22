@@ -1,9 +1,9 @@
 #' Yeast Cell-Cycle Gene Expression Data
 #'
 #' A binary empirical dataset with the gene expression states of 14 yeast
-#' cell-cycle genes across various experimental conditions. The dataset is used
-#' in the original Han et al. (2014) paper to demonstrate the BBNI method for
-#' inferring Boolean gene regulatory networks.
+#' cell-cycle genes across 385 complete pooled experimental conditions. The
+#' data were filtered to the 14 genes used by Han et al. (2014), columns with
+#' missing values were removed, and each gene was binarized by its row mean.
 #'
 #' @format A numeric matrix with 14 rows (representing individual genes/nodes)
 #' and 385 columns (representing independent samples or sequential time points).

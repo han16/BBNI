@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/BBNI)](https://CRAN.R-project.org/package=BBNI)
 <!-- badges: end -->
 
-BBNI is a Bayesian approach to Boolean gene regulatory network inference from noisy gene expression data. The method is discussed in more detail in [Han et al. (2014)](https://doi.org/10.1371/journal.pone.0115806). Unlike methods that return a single best-fit network topology, such as REVEAL and BFE, found in [BoolNet](https://cran.r-project.org/package=BoolNet), BBNI uses Markov chain Monte Carlo (MCMC) to sample from a joint posterior distribution of network topologies and Boolean transition functions. BBNI deliberately takes biological noise into account and allows for summarization (such as Bayesian model averaging, or BMA) that stabilizes results through posterior edge probabilities rather than a single point estimate.
+BBNI ([B]{.underline}ayesian [B]{.underline}oolean [N]{.underline}etwork [I]{.underline}nference) is a Bayesian approach to Boolean gene regulatory network inference from noisy gene expression data. The method is discussed in more detail in [Han et al. (2014)](https://doi.org/10.1371/journal.pone.0115806). Unlike methods that return a single best-fit network topology, such as REVEAL and BFE, found in [BoolNet](https://cran.r-project.org/package=BoolNet), BBNI uses Markov chain Monte Carlo (MCMC) to sample from a joint posterior distribution of network topologies and Boolean transition functions. BBNI deliberately takes biological noise into account and allows for summarization (such as Bayesian model averaging, or BMA) that stabilizes results through posterior edge probabilities rather than a single point estimate.
 
 ## Installation
 
@@ -38,7 +38,7 @@ devtools::install_github("han16/BBNI")
 
 ## Performance
 
-BBNI's MCMC sampler was significantly optimized after the initial CRAN release. On a benchmark 5000-iteration run (the vignette simulation): **62.75 minutes -> 4.48 minutes (92.9% less time)**, with identical numerical output.
+BBNI's MCMC sampler was significantly optimized after the initial CRAN release. Controlled benchmarks show roughly a 10-fold speedup for 20-node networks; exact runtimes depend on hardware and system load.
 
 ## Example
 

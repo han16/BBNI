@@ -49,17 +49,26 @@ plot_bbni <- function(results, threshold = 0.5, node_names = NULL, true_network 
   adj_matrix <- ifelse(res >= threshold, 1, 0)
   # Assign node names if provided, otherwise default to N1, N2...
   num_nodes <- nrow(res)
-  if (is.null(node_names)) {
+    if (is.null(node_names)) {
     colnames(adj_matrix) <- rownames(adj_matrix) <- paste0("N", 1:num_nodes)
+    vsize <- 12   # short N-labels: keep current look
+    lcex  <- 0.7
   } else {
     colnames(adj_matrix) <- rownames(adj_matrix) <- node_names
+    vsize <- 20   # real gene names (e.g. CDC20), bigger circle + smaller text so labels fit
+    lcex  <- 0.6
   }
   # get functions for inferred edges
   inf_func_matrix <- matrix(0, num_nodes, num_nodes)
+  # filter out burn-in samples so function inference isn't polluted by early chain states
+  total_samples <- length(results$networks)
+  burn_in_ratio <- if (!is.null(results$burn_in)) results$burn_in else 0
+  burn_in_steps <- floor(burn_in_ratio * (total_samples - 1))
+  post_samples <- results$networks[(burn_in_steps + 2):total_samples]
   for (i in 1:num_nodes) {
     for (j in 1:num_nodes) {
       if (adj_matrix[i, j] == 1) {
-        vals <- sapply(results$networks, `[` , i, j)
+        vals <- sapply(post_samples, `[` , i, j)
         vals <- vals[vals > 0]
         if (length(vals) > 0) {
           inf_func_matrix[i, j] <- as.integer(names(which.max(table(vals))))
@@ -86,23 +95,26 @@ plot_bbni <- function(results, threshold = 0.5, node_names = NULL, true_network 
     e_lty[is_true & !is_inf] <- 2               # Dashed for missed edges
     igraph::E(g)$color <- e_colors
     igraph::E(g)$lty <- e_lty
-    main_title <- paste("Inferred vs True Network (Threshold >", threshold, ")")
+    main_title <- paste("Inferred vs True Network (Threshold >=", threshold, ")")
   } else {
     # default plotting w/o ground truth
     g <- igraph::graph_from_adjacency_matrix(t(adj_matrix), mode = "directed")
     igraph::E(g)$color <- "darkgray"
     igraph::E(g)$lty <- 1
-    main_title <- paste("Inferred Network (Threshold >", threshold, ")")
+    main_title <- paste("Inferred Network (Threshold >=", threshold, ")")
   }
   # plot graph
-  igraph::plot.igraph(g,
-                      vertex.size = 20,
-                      vertex.color = "lightblue",
-                      vertex.label.color = "black",
-                      vertex.label.cex = 0.8,
-                      edge.arrow.size = 0.5,
-                      main = main_title,
-                      ...)
+    # Capture extra arguments (like layout)
+  dots <- list(...)
+  # plot graph
+  do.call(igraph::plot.igraph, c(list(g,
+    vertex.size = vsize,
+    vertex.color = "lightblue",
+    vertex.label.color = "black",
+    vertex.label.cex = lcex,
+    edge.arrow.size = 0.4,
+    edge.curved = 0.1,
+    main = main_title), dots))
   # add legend if ground truth was provided
   if (!is.null(true_network)) {
     legend("bottomleft",
@@ -164,6 +176,7 @@ plot_network <- function(trans_matrix, node_names = NULL, ...) {
 #' edge-probability calculations.
 #'
 #' @param results The list returned by \code{run_bbni()}, containing \code{networks} and \code{log_posterior}.
+#' @param every An integer specifying the thinning interval (sampling frequency) for plotting. Default is 1, which plots all log-posterior values. Values greater than 1 plot every \code{every}-th iteration.
 #'
 #' @return A base R trace plot.
 #'
@@ -185,15 +198,17 @@ plot_network <- function(trans_matrix, node_names = NULL, ...) {
 #'
 #' @importFrom graphics plot abline legend
 #' @export
-plot_trace <- function(results) {
+plot_trace <- function(results, every = 1) {
   logpost <- results$log_posterior
+  if (every > 1) logpost <- logpost[seq(1, length(logpost), by = every)]
   plot(logpost, type = "l", col = "darkblue",
-       xlab = "Iteration", ylab = "Log-Posterior",
-       main = "MCMC Trace Plot",
-       lwd = 1.5)
+      xlab = if (every == 1) "Node-level update" else "Outer iteration", 
+      ylab = "Log-Posterior",
+      main = "MCMC Trace Plot",
+      lwd = 1.5)
   # add vertical line for burn-in if present
   if (!is.null(results$burn_in)) {
-    abline(v = results$burn_in * length(results$log_posterior), col = "red", lty = 2)
+    abline(v = results$burn_in * length(logpost), col = "red", lty = 2)
     legend("bottomright", legend = paste("Burn-in =", results$burn_in), col = "red", lty = 2, bty = "n")
   }
 }

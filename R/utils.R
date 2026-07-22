@@ -32,11 +32,6 @@ update_ancestor_matrix <- function(incid_matrix) {
 #' @return An integer count of the number of nodes that are ancestors of themselves. A value greater than 0 indicates the proposed topology has cyclic loops and must be rejected.
 #' @noRd
 check_ances_matrix <- function(ances_matrix) {
-  loop <- 0
-  for (i in seq_len(nrow(ances_matrix))) {
-    if (ances_matrix[i, i] == 1) {
-      loop <- loop + 1
-    }
-  }
-  return(loop)
+  # vectorized
+  sum(diag(ances_matrix) == 1)
 }

@@ -13,7 +13,7 @@
 #' @param SampleSize An integer representing the total number of time points/samples in `GeneData`.
 #' @param num.node An integer representing the total number of genes/nodes in the network.
 #' @param prior_para A matrix of Beta distribution hyperparameters (\eqn{\alpha, \beta}{\alpha, \beta}) for root nodes and the global noise parameter \eqn{e}{e}.
-#' @param penalty A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}.
+#' @param penalty Structural-prior hyperparameter in \eqn{(0, 1]}{(0, 1]}. A value of \code{1} corresponds to a uniform prior over valid network topologies; values below \code{1} apply an edge-count penalty that favors sparser networks.
 #'
 #' @return A list of two vectors evaluating model fit. `results[[1]]` contains `[ErrorFactor, RootFactor, likelihood, post_para, log_post_model]`, where `log_post_model` is the collapsed posterior metric \eqn{\log p(T, F \mid G)}{\log p(T, F | G)}. `results[[2]]` contains `[para_sample, mismatch, Perror]`, providing point estimates of the root ON-probabilities, total mismatches, and estimated noise error rate \eqn{e}{e}.
 #' @noRd
@@ -25,6 +25,7 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
     idx_child <- 1:SampleSize
     idx_parent <- 1:SampleSize
   }
+  n_obs <- length(idx_child)
   # speedup. vectorized row processing w/ pre-allocated memory instead of nested loops
   # drops time complexity from O(N^2) -> O(N)
   n <- nrow(TRFUM)
@@ -58,37 +59,45 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
       # switch case
       mismatch <- mismatch + switch(rule,
       # 1
-      sum(bitXor(child, bitAnd(parent1, parent2))),
+      sum(bitwXor(child, bitwAnd(parent1, parent2))),
       # 2
-      sum(bitXor(child, 1 - bitAnd(parent1, parent2))),
+      sum(bitwXor(child, 1 - bitwAnd(parent1, parent2))),
       # 3
-      sum(bitXor(child, bitOr(parent1, parent2))),
+      sum(bitwXor(child, bitwOr(parent1, parent2))),
       # 4
-      sum(bitXor(child, 1 - bitOr(parent1, parent2))),
+      sum(bitwXor(child, 1 - bitwOr(parent1, parent2))),
       # 5
-      sum(bitXor(child, bitOr(1 - parent1, parent2))),
+      sum(bitwXor(child, bitwOr(1 - parent1, parent2))),
       # 6
-      sum(bitXor(child, bitOr(parent1, 1 - parent2))),
+      sum(bitwXor(child, bitwOr(parent1, 1 - parent2))),
       # 7
-      sum(bitXor(child, bitAnd(1 - parent1, parent2))),
+      sum(bitwXor(child, bitwAnd(1 - parent1, parent2))),
       # 8
-      sum(bitXor(child, bitAnd(parent1, 1 - parent2))),
+      sum(bitwXor(child, bitwAnd(parent1, 1 - parent2))),
       # 9
-      sum(bitXor(child, bitXor(parent1, parent2))),
+      sum(bitwXor(child, bitwXor(parent1, parent2))),
       # 10
-      sum(bitXor(child, 1 - bitXor(parent1, parent2))),
+      sum(bitwXor(child, 1 - bitwXor(parent1, parent2))),
       # 11
-      sum(bitXor(child, parent1)),
+      sum(bitwXor(child, parent1)),
       # 12
-      sum(bitXor(child, 1 - parent1))
+      sum(bitwXor(child, 1 - parent1))
       )
     }
   }
   pseudo_count <- 0.0001
-  mismatch <- mismatch + pseudo_count
-  Perror <- mismatch / (n_nonroot * SampleSize + pseudo_count)
-  ErrorFactor <- mismatch * log(Perror) + (n_nonroot * SampleSize - mismatch + pseudo_count) * log(1 - Perror)
-  ErrorPrior <- (prior_para[num.node + 1, 1] - 1) * log(Perror) + (prior_para[num.node + 1, 2] - 1) * log(1 - Perror)
+  raw_mismatch <- mismatch
+  mismatch <- raw_mismatch + pseudo_count
+  # use effective observation count for noise calculations
+  if (n_nonroot > 0) {
+    Perror <- mismatch / (n_nonroot * n_obs + pseudo_count)
+    ErrorFactor <- mismatch * log(Perror) + (n_nonroot * n_obs - mismatch + pseudo_count) * log(1 - Perror)
+    ErrorPrior <- (prior_para[num.node + 1, 1] - 1) * log(Perror) + (prior_para[num.node + 1, 2] - 1) * log(1 - Perror)
+  } else {
+    Perror <- NA
+    ErrorFactor <- NA
+    ErrorPrior <- 0
+  }
   RootFactor <- numeric()
   RootPrior <- numeric()
   succ_count <- numeric()
@@ -124,7 +133,7 @@ Error_LLH <- function(TRFUM, GeneData, SampleSize, num.node, prior_para, penalty
       deno <- lbeta(prior_para[index, 1], prior_para[index, 2])
       log_post_model <- log_post_model + nume - deno
     }
-    noise_nume <- lbeta(mismatch + prior_para[num.node + 1, 1], n_nonroot * SampleSize - mismatch + prior_para[num.node + 1, 2])
+    noise_nume <- lbeta(raw_mismatch + prior_para[num.node + 1, 1], n_nonroot * n_obs - raw_mismatch + prior_para[num.node + 1, 2])
     noise_deno <- lbeta(prior_para[num.node + 1, 1], prior_para[num.node + 1, 2])
     log_post_model <- log_post_model + noise_nume - noise_deno
     log_post_model <- log_post_model + length(TRFUM[TRFUM>0]) * log(penalty)

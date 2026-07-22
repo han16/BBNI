@@ -14,16 +14,16 @@ ProposalConstruction <- function(GeneData, SampleSize, timeseries = TRUE) {
   gene.data <- GeneData
   error.prop <- 0.4
   pseudo.count <- 0.01
-  SampleSize <- SampleSize + pseudo.count * 8
-  threshold <- SampleSize * error.prop
+  orig_n <- SampleSize
+  effective_n <- if (timeseries) orig_n - 1 else orig_n
+  SampleSize <- effective_n
+  threshold <- (SampleSize + pseudo.count * 8) * error.prop
   if (timeseries) {
-    idx_parent <- 1:(SampleSize - 1)
-    idx_child <- 2:SampleSize
-    child_offset <- 1
+    idx_parent <- 1:(orig_n - 1)
+    idx_child <- 2:orig_n
   } else {
-    idx_parent <- 1:SampleSize
-    idx_child <- 1:SampleSize
-    child_offset <- 0
+    idx_parent <- 1:orig_n
+    idx_child <- 1:orig_n
   }
   candidate.prior <- list()
   kk <- 1
@@ -33,42 +33,9 @@ ProposalConstruction <- function(GeneData, SampleSize, timeseries = TRUE) {
         for (k in seq_len(nrow(gene.data))) {
           if (k != i && k != j) {
             test.result <- list()
-            gene.triplet <- rbind(rbind(gene.data[i, idx_parent], gene.data[j, idx_parent]), gene.data[k, idx_child])
-            c000 <- 0
-            c001 <- 0
-            c010 <- 0
-            c011 <- 0
-            c100 <- 0
-            c101 <- 0
-            c110 <- 0
-            c111 <- 0
-            for (ii in seq_len(ncol(gene.triplet))) { # counts in each cell
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 0) {
-                c000 <- c000 + 1
-              }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 1) {
-                c001 <- c001 + 1
-              }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 0) {
-                c010 <- c010 + 1
-              }
-              if (gene.triplet[1, ii] == 0 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 1) {
-                c011 <- c011 + 1
-              }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 0) {
-                c100 <- c100 + 1
-              }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 0 && gene.triplet[3, ii] == 1) {
-                c101 <- c101 + 1
-              }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 0) {
-                c110 <- c110 + 1
-              }
-              if (gene.triplet[1, ii] == 1 && gene.triplet[2, ii] == 1 && gene.triplet[3, ii] == 1) {
-                c111 <- c111 + 1
-              }
-            }
-            test.stat <- c(c000, c001, c010, c011, c100, c101, c110, c111)
+            # vectorized frequency counting: maps (p1, p2, ch) binary states to integers 0-7
+            triplet_states <- gene.data[i, idx_parent] * 4L + gene.data[j, idx_parent] * 2L + gene.data[k, idx_child] * 1L
+            test.stat <- tabulate(triplet_states + 1L, nbins = 8)
             test.result[[1]] <- c(i, j, k, 1, BF1(test.stat, pseudo.count, SampleSize, threshold))
             test.result[[2]] <- c(i, j, k, 2, BF2(test.stat, pseudo.count, SampleSize, threshold))
             test.result[[3]] <- c(i, j, k, 3, BF3(test.stat, pseudo.count, SampleSize, threshold))

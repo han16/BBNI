@@ -8,7 +8,7 @@
 #'
 #' @param num.node An integer representing the total number of genes/nodes in the network.
 #'
-#' @return A square transition function matrix combining the initial DAG topology with randomly assigned Boolean logic functions. Elements with a value of 0 indicate no directed edge, while positive integers indicate the presence of an edge and specify the defining Boolean function type (1-14).
+#' @return A square transition function matrix combining the initial DAG topology with randomly assigned Boolean logic functions. Elements with a value of 0 indicate no directed edge, while positive integers indicate the presence of an edge and specify the defining Boolean function type (codes 1-12: 1-10 for two-input functions, 11-12 for one-input identity/negation functions).
 #'
 #' @examples
 #' # Generate a true network topology and Boolean rules for 5 nodes
@@ -95,7 +95,6 @@ GenerateNetwork <- function(num.node) {
 #' )
 #' print(dummy_data)
 #'
-#' @importFrom bitops bitXor bitAnd bitOr
 #' @export
 GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_matrix), para = rep(0.5, nrow(trans_matrix)), error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize), timeseries = TRUE) {
   node_ances <- matrix(nrow = num.node, ncol = 2)
@@ -138,40 +137,40 @@ GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_
       func <- trans_matrix[node_ances[i, 1], parent[1]]
       # bitwise boolean operations now mapped dynamically w/ idx_child and idx_parent
       if (func == 1) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 2) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(1 - bitwAnd(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 3) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 4) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(1 - bitwOr(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 5) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwOr(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 6) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitOr(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwOr(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 7) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwAnd(1 - GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 8) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitAnd(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwAnd(GeneData[parent[1], idx_parent], 1 - GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 9) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(bitXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(bitwXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 10) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - bitXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(1 - bitwXor(GeneData[parent[1], idx_parent], GeneData[parent[2], idx_parent]), error[node_ances[i, 1], idx_parent])
       }
       if (func == 11) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
       }
       if (func == 12) {
-        GeneData[node_ances[i, 1], idx_child] <- bitXor(1 - GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
+        GeneData[node_ances[i, 1], idx_child] <- bitwXor(1 - GeneData[parent[1], idx_parent], error[node_ances[i, 1], idx_parent])
       }
     }
   }

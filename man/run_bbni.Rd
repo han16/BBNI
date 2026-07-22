@@ -11,7 +11,7 @@ run_bbni(
   prior_para = NULL,
   num_update = 4000,
   penalty = 0.1,
-  prop.ratio = 0.5,
+  prop.ratio = 0.1,
   verbose = FALSE,
   timeseries = TRUE,
   burn_in = 0.7
@@ -28,9 +28,9 @@ run_bbni(
 
 \item{num_update}{An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.}
 
-\item{penalty}{A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}. Defaults to 0.1 if not specified.}
+\item{penalty}{Structural-prior hyperparameter in \eqn{(0, 1]}{(0, 1]}. A value of \code{1} corresponds to a uniform prior over valid network topologies; values below \code{1} apply an edge-count penalty that favors sparser networks. Defaults to 0.1 if not specified.}
 
-\item{prop.ratio}{A numeric value between 0 and 1 representing the probability of choosing a uniform proposal distribution over an empirical proposal distribution at each iteration. Defaults to 0.5}
+\item{prop.ratio}{A numeric value between 0 and 1 giving the final probability of using the empirical proposal distribution after the first 10\% of outer iterations. During the first 10\% of outer iterations, the empirical proposal is used with probability 0.9. Defaults to 0.1.}
 
 \item{verbose}{Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.}
 
@@ -46,9 +46,14 @@ Executes a Metropolis-within-Gibbs Markov chain Monte Carlo (MCMC) algorithm to 
 from the joint posterior distribution of Directed Acyclic Graph (DAG) topologies (\eqn{T}{T}) and
 Boolean logic transition functions (\eqn{F}{F}). The algorithm iterates through individual
 network nodes and proposes parent set mutations (edge additions, removals, or swaps)
-paired with transition function reassignments to one of 14 candidate Boolean rules.
+paired with transition function reassignments to one of 14 candidate Boolean rules (stored as codes 1-12 in the transition matrix).
 Proposed states transitions are strictly verified to follow the DAG constraint and
 evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values.
+}
+\details{
+Posterior edge probabilities (\code{post_edge_prob}) are computed from one
+thinned sample per outer iteration (a full Gibbs sweep) after discarding
+\code{burn_in}, as designed in the original method paper.
 }
 \examples{
 # 1. Define network parameters

@@ -10,7 +10,7 @@ GenerateNetwork(num.node)
 \item{num.node}{An integer representing the total number of genes/nodes in the network.}
 }
 \value{
-A square transition function matrix combining the initial DAG topology with randomly assigned Boolean logic functions. Elements with a value of 0 indicate no directed edge, while positive integers indicate the presence of an edge and specify the defining Boolean function type (1-14).
+A square transition function matrix combining the initial DAG topology with randomly assigned Boolean logic functions. Elements with a value of 0 indicate no directed edge, while positive integers indicate the presence of an edge and specify the defining Boolean function type (codes 1-12: 1-10 for two-input functions, 11-12 for one-input identity/negation functions).
 }
 \description{
 Randomly generates a valid directed acyclic graph (DAG) topology

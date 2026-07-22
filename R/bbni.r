@@ -4,7 +4,7 @@
 #' from the joint posterior distribution of Directed Acyclic Graph (DAG) topologies (\eqn{T}{T}) and
 #' Boolean logic transition functions (\eqn{F}{F}). The algorithm iterates through individual
 #' network nodes and proposes parent set mutations (edge additions, removals, or swaps)
-#' paired with transition function reassignments to one of 14 candidate Boolean rules.
+#' paired with transition function reassignments to one of 14 candidate Boolean rules (stored as codes 1-12 in the transition matrix).
 #' Proposed states transitions are strictly verified to follow the DAG constraint and
 #' evaluated with a Metropolis-Hastings acceptance threshold using log-posterior values.
 #'
@@ -13,11 +13,15 @@
 #' @param SampleSize An integer representing the total number of time points or independent samples in the dataset. Defaults to \code{ncol(GeneData)} if not specified.
 #' @param prior_para A matrix (with dimensions `(num.node + 1) x 2`) of Beta prior hyperparameters \eqn{\alpha}{\alpha} and \eqn{\beta}{\beta} for root node probabilities and the global noise parameter \eqn{e}{e}. Defaults to a flat prior if not specified.
 #' @param num_update An integer representing the total number of MCMC iterations to perform. Defaults to 4000 if not specified.
-#' @param penalty A numeric value representing the structural prior probability per edge used to penalize network complexity \eqn{P(T)}{P(T)}. Defaults to 0.1 if not specified.
-#' @param prop.ratio A numeric value between 0 and 1 representing the probability of choosing a uniform proposal distribution over an empirical proposal distribution at each iteration. Defaults to 0.5
+#' @param penalty Structural-prior hyperparameter in \eqn{(0, 1]}{(0, 1]}. A value of \code{1} corresponds to a uniform prior over valid network topologies; values below \code{1} apply an edge-count penalty that favors sparser networks. Defaults to 0.1 if not specified.
+#' @param prop.ratio A numeric value between 0 and 1 giving the final probability of using the empirical proposal distribution after the first 10% of outer iterations. During the first 10% of outer iterations, the empirical proposal is used with probability 0.9. Defaults to 0.1.
 #' @param verbose Logical. If TRUE, prints verbose MCMC iteration progress to the console. Default is FALSE.
 #' @param timeseries Logical. If TRUE, the algorithm assumes a time-series dataset. If FALSE, the algorithm assumes independent samples. Default is TRUE.
 #' @param burn_in A numeric value between 0 and 1 representing the proportion of initial MCMC samples to discard as burn-in. Defaults to 0.7 if not specified.
+#'
+#' @details Posterior edge probabilities (`post_edge_prob`) are computed from one
+#' thinned sample per outer iteration (a full Gibbs sweep) after discarding
+#' `burn_in`, as designed in the original method paper.
 #'
 #' @return A list containing the full trajectory of the MCMC chain. Specifically, `networks` (a list of sampled transition function matrices) and `log_posterior` (a numeric vector of log-posterior scores for each iteration). These represent samples drawn from the marginal posterior distribution \eqn{P(T,F|G)}{P(T,F|G)} used for Bayesian model averaging. Additionally, the `post_edge_prob` (matrix of marginal posterior edge probabilities) and `burn_in` ratio are returned in the list.
 #'
@@ -69,10 +73,18 @@
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(GeneData), prior_para = NULL,
-                     num_update = 4000, penalty = 0.1, prop.ratio = 0.5, verbose = FALSE, timeseries = TRUE, burn_in = 0.7) {
+                     num_update = 4000, penalty = 0.1, prop.ratio = 0.1, verbose = FALSE, timeseries = TRUE, burn_in = 0.7) {
   # Generate flat priors if not provided by user
   if (is.null(prior_para)) {
     prior_para <- matrix(1, nrow = num.node + 1, ncol = 2)
+  }
+  # validate penalty: must be in (0, 1]
+  if (!is.numeric(penalty) || length(penalty) != 1 || penalty <= 0 || penalty > 1) {
+    stop("'penalty' must be a single numeric value in (0, 1]. Use penalty = 1 for a uniform topology prior.", call. = FALSE)
+  }
+  # validate prop.ratio
+  if (!is.numeric(prop.ratio) || length(prop.ratio) != 1 || prop.ratio < 0 || prop.ratio > 1) {
+    stop("'prop.ratio' must be a single numeric value in [0, 1].", call. = FALSE)
   }
   Candidate <- ProposalConstruction(GeneData, SampleSize, timeseries) # create the proposal for generated data
   prior.triplet <- Candidate[[1]]
@@ -109,6 +121,7 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
   iter <- 1
   jump_point <- numeric()
   jump_point[1] <- 1 # parameters for each chain
+  prop.ratio.final <- prop.ratio
   if (verbose) {
     # initialize progress bar
     cat("Running BBNI MCMC Sampling...\n")
@@ -117,11 +130,10 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
   for (ii in 1:num_update) { # run ii full rounds, with each round of num.node times
     if (ii <= round(0.1 * num_update)) { # use adaptive ratio of using proposal information
       prop.ratio <- 0.1
+    } else {
+      prop.ratio <- 1 - prop.ratio.final
     }
-    if (ii > round(0.1 * num_update)) {
-      prop.ratio <- 0.9
-    }
-
+    
     update_order <- sample.int(num.node, num.node, replace = FALSE)
     for (k in seq_along(update_order)) { #   consider the updating node g_k
       if (verbose) {
@@ -1283,10 +1295,9 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
       }
     } # end of updating
   } # end of num_update
-  # calculate burn-in
-  burn_in_steps <- floor(burn_in * num_update * num.node)
-  # post-burn-in samples
-  post_samples <- Trans_Func_Matrix[(burn_in_steps + 2):(num_update * num.node + 1)]
+  # thin to one sample per completed outer iteration (a full Gibbs sweep)
+  keep_iter <- seq(floor(burn_in * num_update) + 1L, num_update)
+  post_samples <- Trans_Func_Matrix[num.node * keep_iter + 1L]
   # calculate the posterior probability of each edge
   post_edge_prob <- Reduce(`+`, lapply(post_samples, function(m) (m > 0) * 1)) / length(post_samples)
   rownames(post_edge_prob) <- rownames(GeneData)
