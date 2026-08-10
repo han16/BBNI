@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/anson-li8/BBNI/blob/v0.2.2/inst/CITATION)
+[`inst/CITATION`](https://github.com/han16/BBNI/blob/Graphical-Models/inst/CITATION)
 
 Han S, Wong RKW, Lee TCM, Shen L, Li S-YR, Fan X (2014). A Full Bayesian
 Approach for Boolean Genetic Network Inference. PLoS ONE 9(12): e115806.

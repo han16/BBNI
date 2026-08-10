@@ -127,8 +127,8 @@ be recorded as binary (0/1) expression states.
 ## Running the MCMC sampler
 
 We next execute
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
-on the simulated data. The main arguments are:
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md) on
+the simulated data. The main arguments are:
 
 - `num_update` - total number of MCMC outer iterations.
 - `penalty` - structural-prior hyperparameter in \\(0, 1\]\\. Values
@@ -171,7 +171,7 @@ mcmc_results <- run_bbni(
 run_end <- Sys.time()
 ```
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 accepts a `verbose` argument (default `FALSE`) that displays a text
 progress bar during sampling; it’s left default here to keep the
 vignette clean.
@@ -193,7 +193,7 @@ hardware and system load.
 
 ## Analyzing the output
 
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)
 returns a list containing the sampled path of the Markov chain:
 
 - `log_posterior` - numeric vector of log-posterior values stored after
@@ -310,8 +310,8 @@ We first discard an initial burn-in period, here set to 75% of the
 recorded chain to match the burn-in convention used in [Han et
 al. (2014)](https://doi.org/10.1371/journal.pone.0115806)’s own
 simulation studies, instead of
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md)’s
-own default `burn_in` value of 70%. This is to reduce the impact of the
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md)’s own
+default `burn_in` value of 70%. This is to reduce the impact of the
 unpredictability of the arbitrary starting structure. We then retain one
 network per outer iteration (every `num.node` node-level updates) to
 account for the strong statistical dependence of within-iteration
@@ -370,7 +370,7 @@ Bayesian Boolean network framework to yeast cell-cycle expression data
 and compared the inferred relationships with a reference cell-cycle
 network. A package-level empirical example can follow the same
 structure: load a binary expression matrix, run
-[`run_bbni()`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
+[`run_bbni()`](https://han16.github.io/BBNI/reference/run_bbni.md),
 examine trace behavior, summarize posterior edge probabilities, and
 interpret high-probability interactions in relation to existing
 biological knowledge.
@@ -463,11 +463,10 @@ authors reported.
 This vignette demonstrates the core `BBNI` workflow on simulated data.
 From here:
 
-- See
-  [`?run_bbni`](https://anson-li8.github.io/BBNI/reference/run_bbni.md),
-  [`?GenerateNetwork`](https://anson-li8.github.io/BBNI/reference/GenerateNetwork.md),
+- See [`?run_bbni`](https://han16.github.io/BBNI/reference/run_bbni.md),
+  [`?GenerateNetwork`](https://han16.github.io/BBNI/reference/GenerateNetwork.md),
   and
-  [`?GenerateSample`](https://anson-li8.github.io/BBNI/reference/GenerateSample.md)
+  [`?GenerateSample`](https://han16.github.io/BBNI/reference/GenerateSample.md)
   for function-level documentation.
 - The simulated example runs 5000 iterations on a 20-node network.
   Larger networks, noisier data, or higher-precision posterior summaries
