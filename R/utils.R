@@ -9,7 +9,6 @@
 #' @returns A binary matrix of the same dimensions as `incid_matrix`. An entry of 1 at (i, k) indicates that node i is an ancestor of node k through one or more directed edges.
 #' @noRd
 update_ancestor_matrix <- function(incid_matrix) {
-  # BLAS matrix-power squaring can speed this up even more
   n <- nrow(incid_matrix)
   R <- incid_matrix
   steps <- ceiling(log2(n))
