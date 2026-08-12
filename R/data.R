@@ -10,7 +10,7 @@
 #'
 #' @source Han, S., Wong, R. K. W., Lee, T. C. M., Shen, L., Li, S.-Y. R., & Fan, X. (2014).
 #' A Full Bayesian Approach for Boolean Genetic Network Inference. *PLOS ONE*, 9(12), e115806.
-#' \url{https://doi.org/10.1371/journal.pone.0115806}
+#' \doi{10.1371/journal.pone.0115806}
 #'
 #' @usage data(yeast_data)
 "yeast_data"
