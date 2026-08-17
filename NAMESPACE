@@ -6,12 +6,20 @@ export(plot_bbni)
 export(plot_network)
 export(plot_trace)
 export(run_bbni)
-importFrom(graphics,abline)
-importFrom(graphics,legend)
-importFrom(graphics,plot)
-importFrom(igraph,graph_from_adjacency_matrix)
-importFrom(igraph,plot.igraph)
-importFrom(stats,rbinom)
-importFrom(stats,runif)
-importFrom(utils,setTxtProgressBar)
-importFrom(utils,txtProgressBar)
+importFrom(graphics,
+  abline,
+  legend,
+  plot
+)
+importFrom(igraph,
+  graph_from_adjacency_matrix,
+  plot.igraph
+)
+importFrom(stats,
+  rbinom,
+  runif
+)
+importFrom(utils,
+  setTxtProgressBar,
+  txtProgressBar
+)
