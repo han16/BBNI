@@ -30,11 +30,20 @@ test_that("check_ances_matrix reports zero loops for a valid DAG", {
   expect_equal(check_ances_matrix(ances), 0)
 })
 
-test_that("GenerateNetwork always produces an acyclic topology", {
-  set.seed(1)
-  net <- GenerateNetwork(num.node = 8)
-  incid <- (net > 0) * 1
-  ances <- update_ancestor_matrix(incid)
-
-  expect_equal(check_ances_matrix(ances), 0)
+test_that("GenerateNetwork produces valid DAGs with a maximum in-degree of 2", {
+  # test different network sizes to ensure robustness
+  for (n in c(5, 10, 20)) {
+    set.seed(35) # ensure reproducibility
+    net <- GenerateNetwork(num.node = n)
+    # structural check: must be a square matrix of size n x n
+    expect_equal(nrow(net), n, info = paste("Failed for n =", n))
+    expect_equal(ncol(net), n, info = paste("Failed for n =", n))
+    # DAG validity check: transitive closure must have zero on the diagonal
+    incid <- (net > 0) * 1
+    ances <- update_ancestor_matrix(incid)
+    expect_equal(sum(diag(ances)), 0, info = paste("Network of size", n, "contains a cycle"))
+    # In-degree constraint check: no node should have more than 2 parents
+    in_degrees <- rowSums(incid)
+    expect_true(all(in_degrees <= 2), info = paste("Network of size", n, "has a node with in-degree > 2"))
+  }
 })
