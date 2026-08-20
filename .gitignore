@@ -1,8 +1,12 @@
 .Rproj.user
 .Rhistory
 .RData
+.Ruserdata
 .httr-oauth
 .DS_Store
 .quarto
 docs
 inst/doc
+*.tar.gz
+.DS_Store
+Thumbs.db
