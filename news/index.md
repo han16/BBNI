@@ -2,6 +2,8 @@
 
 ## BBNI 0.2.2
 
+CRAN release: 2026-08-19
+
 - Fixed time-series effective sample size calculation and user-defined
   prop.ratio behavior
 - Implemented posterior thinning in run_bbni() to align with original
