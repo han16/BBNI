@@ -19,11 +19,9 @@ Produces a trace plot of the log-posterior over MCMC iterations. This method
 delegates to \code{\link[=plot_trace]{plot_trace()}}. For network visualization, use \code{\link[=plot_bbni]{plot_bbni()}}.
 }
 \examples{
-\dontrun{
 set.seed(123)
 net <- GenerateNetwork(5)
 data <- GenerateSample(net, 100)
 res <- run_bbni(data, num_update = 50)
 plot(res)
-}
 }

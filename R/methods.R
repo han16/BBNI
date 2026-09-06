@@ -32,13 +32,11 @@ NULL
 #' @method print bbni
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(123)
 #' net <- GenerateNetwork(5)
 #' data <- GenerateSample(net, 100)
 #' res <- run_bbni(data, num_update = 50)
 #' print(res)
-#' }
 print.bbni <- function(x, ...) {
   n <- nrow(x$post_edge_prob)
   iters <- attr(x, "num_update")
@@ -68,13 +66,11 @@ print.bbni <- function(x, ...) {
 #' @method summary bbni
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(123)
 #' net <- GenerateNetwork(5)
 #' data <- GenerateSample(net, 100)
 #' res <- run_bbni(data, num_update = 50)
 #' summary(res, threshold = 0.6, n_top = 3)
-#' }
 summary.bbni <- function(object, threshold = 0.5, n_top = 5, ...) {
   pep <- object$post_edge_prob
   n <- nrow(pep)
@@ -132,13 +128,11 @@ summary.bbni <- function(object, threshold = 0.5, n_top = 5, ...) {
 #' @method plot bbni
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(123)
 #' net <- GenerateNetwork(5)
 #' data <- GenerateSample(net, 100)
 #' res <- run_bbni(data, num_update = 50)
 #' plot(res)
-#' }
 plot.bbni <- function(x, ...) {
   plot_trace(x, ...)
 }

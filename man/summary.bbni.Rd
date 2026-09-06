@@ -27,11 +27,9 @@ Prints a statistical summary of the MCMC run and returns a structured list
 of posterior quantities for further usage in downstream code.
 }
 \examples{
-\dontrun{
 set.seed(123)
 net <- GenerateNetwork(5)
 data <- GenerateSample(net, 100)
 res <- run_bbni(data, num_update = 50)
 summary(res, threshold = 0.6, n_top = 3)
-}
 }
