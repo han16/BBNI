@@ -1348,26 +1348,21 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
   post_edge_prob <- Reduce(`+`, lapply(post_samples, function(m) (m > 0) * 1)) / length(post_samples)
   rownames(post_edge_prob) <- rownames(GeneData)
   colnames(post_edge_prob) <- rownames(GeneData)
-  if (verbose) {
-    close(pb)
-    strong_edges <- sum(post_edge_prob > 0.5)
-    # print a clean summary block
-    cat("\n")
-    cat("=========================================\n")
-    cat("          BBNI Analysis Summary          \n")
-    cat("=========================================\n")
-    cat(sprintf("Nodes Analyzed:          %d\n", num.node))
-    cat(sprintf("Samples Processed:       %d\n", SampleSize))
-    cat(sprintf("MCMC Iterations:         %d\n", num_update))
-    cat(sprintf("Burn-in ratio:           %.2f\n", burn_in))
-    cat(sprintf("Final Log-Posterior:     %.3f\n", all_logpost[length(all_logpost)]))
-    cat(sprintf("Strong Edges (P > 0.5):  %d\n", strong_edges))
-    cat("=========================================\n")
-  }
-  return(list(
+  # return results as a list with attributes
+  out <- list(
     networks = Trans_Func_Matrix,
     log_posterior = all_logpost,
     post_edge_prob = post_edge_prob,
     burn_in = burn_in
-  ))
+  )
+  attr(out, "num.node") <- num.node
+  attr(out, "SampleSize") <- SampleSize
+  attr(out, "num_update") <- num_update
+  attr(out, "timeseries") <- timeseries
+  # set class for the output object
+  class(out) <- "bbni"
+  if (verbose) {
+    print(out)
+  }
+  return(out)
 }
