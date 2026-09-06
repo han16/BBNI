@@ -86,6 +86,52 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
   if (!is.numeric(prop.ratio) || length(prop.ratio) != 1 || prop.ratio < 0 || prop.ratio > 1) {
     stop("'prop.ratio' must be a single numeric value in [0, 1].", call. = FALSE)
   }
+  # validate GeneData
+  if (!is.matrix(GeneData) || !is.numeric(GeneData)) {
+    stop("'GeneData' must be a numeric matrix of binary (0/1) expression states.", call. = FALSE)
+  }
+  if (anyNA(GeneData)) {
+    stop("'GeneData' contains missing values. BBNI requires complete data.", call. = FALSE)
+  }
+  if (!all(GeneData %in% c(0, 1))) {
+    stop("'GeneData' must contain only binary values (0 or 1).", call. = FALSE)
+  }
+  if (!is.numeric(num.node) || length(num.node) != 1 || num.node < 1 || num.node != round(num.node)) {
+    stop("'num.node' must be a single positive integer.", call. = FALSE)
+  }
+  # validate Sample Size
+  if (!is.numeric(SampleSize) || length(SampleSize) != 1 || SampleSize < 1 || SampleSize != round(SampleSize)) {
+    stop("'SampleSize' must be a single positive integer.", call. = FALSE)
+  }
+  # validate that num.node and SampleSize match the dimensions of GeneData
+  if (num.node != nrow(GeneData)) {
+    stop(sprintf("'num.node' (%d) must equal nrow(GeneData) (%d).", num.node, nrow(GeneData)), call. = FALSE)
+  }
+  if (SampleSize != ncol(GeneData)) {
+    stop(sprintf("'SampleSize' (%d) must equal ncol(GeneData) (%d).", SampleSize, ncol(GeneData)), call. = FALSE)
+  }
+  # validate prior_para
+  if (!is.null(prior_para)) {
+    if (!is.matrix(prior_para) || !is.numeric(prior_para) ||
+        nrow(prior_para) != num.node + 1 || ncol(prior_para) != 2) {
+      stop("'prior_para' must be a numeric matrix with dimensions (num.node + 1) x 2.", call. = FALSE)
+    }
+  }
+  # validate num_update
+  if (!is.numeric(num_update) || length(num_update) != 1 || num_update < 1 || num_update != round(num_update)) {
+    stop("'num_update' must be a single positive integer.", call. = FALSE)
+  }
+  # validate verbose and timeseries
+  if (!is.logical(verbose) || length(verbose) != 1) {
+    stop("'verbose' must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (!is.logical(timeseries) || length(timeseries) != 1) {
+    stop("'timeseries' must be TRUE or FALSE.", call. = FALSE)
+  }
+  # validate burn_in
+  if (!is.numeric(burn_in) || length(burn_in) != 1 || burn_in < 0 || burn_in >= 1) {
+    stop("'burn_in' must be a single numeric value in [0, 1).", call. = FALSE)
+  }
   Candidate <- ProposalConstruction(GeneData, SampleSize, timeseries) # create the proposal for generated data
   prior.triplet <- Candidate[[1]]
   prior.pairwise <- Candidate[[2]]
@@ -133,7 +179,7 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
     } else {
       prop.ratio <- 1 - prop.ratio.final
     }
-    
+
     update_order <- sample.int(num.node, num.node, replace = FALSE)
     for (k in seq_along(update_order)) { #   consider the updating node g_k
       if (verbose) {
@@ -1302,26 +1348,21 @@ run_bbni <- function(GeneData, num.node = nrow(GeneData), SampleSize = ncol(Gene
   post_edge_prob <- Reduce(`+`, lapply(post_samples, function(m) (m > 0) * 1)) / length(post_samples)
   rownames(post_edge_prob) <- rownames(GeneData)
   colnames(post_edge_prob) <- rownames(GeneData)
-  if (verbose) {
-    close(pb)
-    strong_edges <- sum(post_edge_prob > 0.5)
-    # print a clean summary block
-    cat("\n")
-    cat("=========================================\n")
-    cat("          BBNI Analysis Summary          \n")
-    cat("=========================================\n")
-    cat(sprintf("Nodes Analyzed:          %d\n", num.node))
-    cat(sprintf("Samples Processed:       %d\n", SampleSize))
-    cat(sprintf("MCMC Iterations:         %d\n", num_update))
-    cat(sprintf("Burn-in ratio:           %.2f\n", burn_in))
-    cat(sprintf("Final Log-Posterior:     %.3f\n", all_logpost[length(all_logpost)]))
-    cat(sprintf("Strong Edges (P > 0.5):  %d\n", strong_edges))
-    cat("=========================================\n")
-  }
-  return(list(
+  # return results as a list with attributes
+  out <- list(
     networks = Trans_Func_Matrix,
     log_posterior = all_logpost,
     post_edge_prob = post_edge_prob,
     burn_in = burn_in
-  ))
+  )
+  attr(out, "num.node") <- num.node
+  attr(out, "SampleSize") <- SampleSize
+  attr(out, "num_update") <- num_update
+  attr(out, "timeseries") <- timeseries
+  # set class for the output object
+  class(out) <- "bbni"
+  if (verbose) {
+    print(out)
+  }
+  return(out)
 }

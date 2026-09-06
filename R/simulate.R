@@ -21,6 +21,10 @@
 #' @importFrom stats rbinom runif
 #' @export
 GenerateNetwork <- function(num.node) {
+  # validate params
+  if (!is.numeric(num.node) || length(num.node) != 1 || num.node < 2 || num.node != round(num.node)) {
+    stop("'num.node' must be a single integer of at least 2.", call. = FALSE)
+  }
   # seems to end up into a nearly infinite loop at higher numbers of num.node, need to fix
   all_nodes <- 1:num.node
   loop <- 1
@@ -97,6 +101,25 @@ GenerateNetwork <- function(num.node) {
 #'
 #' @export
 GenerateSample <- function(trans_matrix, SampleSize = 50, num.node = nrow(trans_matrix), para = rep(0.5, nrow(trans_matrix)), error = matrix(0, nrow = nrow(trans_matrix), ncol = SampleSize), timeseries = TRUE) {
+  # validate params
+  if (!is.matrix(trans_matrix) || nrow(trans_matrix) != ncol(trans_matrix)) {
+    stop("'trans_matrix' must be a square matrix (e.g., output of GenerateNetwork()).", call. = FALSE)
+  }
+  if (!is.numeric(SampleSize) || length(SampleSize) != 1 || SampleSize < 1 || SampleSize != round(SampleSize)) {
+    stop("'SampleSize' must be a single positive integer.", call. = FALSE)
+  }
+  if (!is.numeric(num.node) || length(num.node) != 1 || num.node != nrow(trans_matrix)) {
+    stop(sprintf("'num.node' must equal nrow(trans_matrix) (%d).", nrow(trans_matrix)), call. = FALSE)
+  }
+  if (!is.numeric(para) || length(para) < num.node || any(para < 0) || any(para > 1)) {
+    stop("'para' must be a numeric vector with at least num.node entries in [0, 1].", call. = FALSE)
+  }
+  if (!is.matrix(error) || nrow(error) != num.node || ncol(error) != SampleSize || !all(error %in% c(0, 1))) {
+    stop("'error' must be a binary (0/1) matrix with dimensions num.node x SampleSize.", call. = FALSE)
+  }
+  if (!is.logical(timeseries) || length(timeseries) != 1) {
+    stop("'timeseries' must be TRUE or FALSE.", call. = FALSE)
+  }
   node_ances <- matrix(nrow = num.node, ncol = 2)
   GeneData <- matrix(0, nrow = num.node, ncol = SampleSize)
   incid_matrix <- trans_matrix
