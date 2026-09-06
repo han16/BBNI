@@ -37,6 +37,13 @@ plot_bbni <- function(results, threshold = 0.5, node_names = NULL, true_network 
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop("Package \"igraph\" is required for plotting. Please install it.", call. = FALSE)
   }
+  # Validate parameters
+  if (!is.list(results) || (is.null(results$post_edge_prob) && is.null(results$networks))) {
+    stop("'results' must be a 'bbni' object returned by run_bbni().", call. = FALSE)
+  }
+  if (!is.numeric(threshold) || length(threshold) != 1 || threshold < 0 || threshold > 1) {
+    stop("'threshold' must be a single numeric value in [0, 1].", call. = FALSE)
+  }
   # Extract list of networks and calculate posterior probabilities (res)
   if (!is.null(results$post_edge_prob)) {
     res <- results$post_edge_prob
@@ -57,6 +64,14 @@ plot_bbni <- function(results, threshold = 0.5, node_names = NULL, true_network 
     colnames(adj_matrix) <- rownames(adj_matrix) <- node_names
     vsize <- 20   # real gene names (e.g. CDC20), bigger circle + smaller text so labels fit
     lcex  <- 0.6
+  }
+  # Validate node_names and true_network if provided
+  if (!is.null(node_names) && (!is.character(node_names) || length(node_names) != num_nodes)) {
+    stop(sprintf("'node_names' must be a character vector of length %d.", num_nodes), call. = FALSE)
+  }
+  if (!is.null(true_network) && (!is.matrix(true_network) ||
+                                 nrow(true_network) != num_nodes || ncol(true_network) != num_nodes)) {
+    stop(sprintf("'true_network' must be a square %d x %d matrix.", num_nodes, num_nodes), call. = FALSE)
   }
   # get functions for inferred edges
   inf_func_matrix <- matrix(0, num_nodes, num_nodes)
@@ -152,6 +167,13 @@ plot_network <- function(trans_matrix, node_names = NULL, ...) {
   if (!requireNamespace("igraph", quietly = TRUE)) {
     stop("Package \"igraph\" is required for plotting. Please install it.", call. = FALSE)
   }
+  # Validate parameters
+  if (!is.matrix(trans_matrix) || nrow(trans_matrix) != ncol(trans_matrix)) {
+    stop("'trans_matrix' must be a square matrix.", call. = FALSE)
+  }
+  if (!is.null(node_names) && (!is.character(node_names) || length(node_names) != nrow(trans_matrix))) {
+    stop(sprintf("'node_names' must be a character vector of length %d.", nrow(trans_matrix)), call. = FALSE)
+  }
   adj_matrix <- (trans_matrix > 0) * 1
   num_nodes <- nrow(adj_matrix)
   if (is.null(node_names)) {
@@ -199,10 +221,17 @@ plot_network <- function(trans_matrix, node_names = NULL, ...) {
 #' @importFrom graphics plot abline legend
 #' @export
 plot_trace <- function(results, every = 1) {
+  # Validate parameters
+  if (!is.list(results) || !is.numeric(results$log_posterior)) {
+    stop("'results' must be a 'bbni' object returned by run_bbni().", call. = FALSE)
+  }
+  if (!is.numeric(every) || length(every) != 1 || every < 1 || every != round(every)) {
+    stop("'every' must be a single positive integer.", call. = FALSE)
+  }
   logpost <- results$log_posterior
   if (every > 1) logpost <- logpost[seq(1, length(logpost), by = every)]
   plot(logpost, type = "l", col = "darkblue",
-      xlab = if (every == 1) "Node-level update" else "Outer iteration", 
+      xlab = if (every == 1) "Node-level update" else "Outer iteration",
       ylab = "Log-Posterior",
       main = "MCMC Trace Plot",
       lwd = 1.5)
