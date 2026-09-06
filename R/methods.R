@@ -7,11 +7,11 @@
 #'
 #' @details
 #' Components:
-#' - `networks`: list of MCMC sampled transition‑function matrices.
-#' - `log_posterior`: numeric vector of collapsed log‑posterior values.
+#' - `networks`: list of MCMC sampled transition-function matrices.
+#' - `log_posterior`: numeric vector of collapsed log-posterior values.
 #' - `post_edge_prob`: matrix of marginal posterior edge probabilities; entry
 #'   `[i, j]` is the probability of the directed edge `j -> i`.
-#' - `burn_in`: the burn‑in ratio used for posterior summarization.
+#' - `burn_in`: the burn-in ratio used for posterior summarization.
 #'
 #' Run metadata (`num.node`, `SampleSize`, `num_update`, `timeseries`) is
 #' stored as attributes.
@@ -23,7 +23,7 @@ NULL
 #' Print a BBNI MCMC Object
 #'
 #' The default display method for `bbni` objects. It provides
-#' a one‑line overview instead of a statistical summary; use
+#' a one-line overview instead of a statistical summary; use
 #' `summary()` for posterior statistics and `plot()` for trace plots.
 #'
 #' @param x A `bbni` object returned by `run_bbni()`.
@@ -46,7 +46,7 @@ print.bbni <- function(x, ...) {
   cat("<bbni> Bayesian Boolean Network Inference MCMC output\n")
   cat(sprintf("%d nodes | %d outer iterations | %s data\n",
               n, iters,
-              if (isTRUE(attr(x, "timeseries"))) "time‑series" else "independent"))
+              if (isTRUE(attr(x, "timeseries"))) "time-series" else "independent"))
   cat("Use summary() for posterior edge statistics and plot() for the trace plot.\n")
   invisible(x)
 }
@@ -59,7 +59,7 @@ print.bbni <- function(x, ...) {
 #' @param object A `bbni` object returned by `run_bbni()`.
 #' @param threshold Numeric. Posterior probability threshold for counting
 #'   strong edges.
-#' @param n_top Integer. Number of highest‑posterior edges to display and
+#' @param n_top Integer. Number of highest-posterior edges to display and
 #'   include in `top_edges`.
 #' @param ... Additional arguments (ignored).
 #' @return A list with components `num_nodes`, `num_update`, `burn_in`,
@@ -95,13 +95,13 @@ summary.bbni <- function(object, threshold = 0.5, n_top = 5, ...) {
   cat("BBNI MCMC summary\n")
   cat(sprintf("  Nodes:                 %d\n", n))
   cat(sprintf("  Outer iterations:      %d\n", iters))
-  cat(sprintf("  Burn‑in ratio:         %.2f\n", object$burn_in))
-  cat(sprintf("  Final log‑posterior:   %.3f\n",
+  cat(sprintf("  Burn-in ratio:         %.2f\n", object$burn_in))
+  cat(sprintf("  Final log-posterior:   %.3f\n",
               object$log_posterior[length(object$log_posterior)]))
   cat(sprintf("  Edges with P > %.2f:    %d\n", threshold,
               sum(pep > threshold & row(pep) != col(pep))))
   if (length(top) > 0L) {
-    cat("  Highest‑posterior edges (child <- parent):\n")
+    cat("  Highest-posterior edges (child <- parent):\n")
     for (k in seq_along(top)) {
       cat(sprintf("    %s <- %s (P = %.2f)\n", rn[ii[k]], rn[jj[k]], m[ii[k], jj[k]]))
     }
@@ -123,8 +123,8 @@ summary.bbni <- function(object, threshold = 0.5, n_top = 5, ...) {
 
 #' Plot a BBNI MCMC Object
 #'
-#' Produces a trace plot of the log‑posterior over MCMC iterations. This method
-#' delegates to [plot_trace()]. For network visualisation, use [plot_bbni()].
+#' Produces a trace plot of the log-posterior over MCMC iterations. This method
+#' delegates to [plot_trace()]. For network visualization, use [plot_bbni()].
 #'
 #' @param x A `bbni` object returned by `run_bbni()`.
 #' @param ... Extra arguments passed to [plot_trace()].

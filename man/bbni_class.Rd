@@ -11,11 +11,11 @@ and \code{plot()} methods; all list components remain directly accessible via \c
 \details{
 Components:
 \itemize{
-\item \code{networks}: list of MCMC sampled transition‑function matrices.
-\item \code{log_posterior}: numeric vector of collapsed log‑posterior values.
+\item \code{networks}: list of MCMC sampled transition-function matrices.
+\item \code{log_posterior}: numeric vector of collapsed log-posterior values.
 \item \code{post_edge_prob}: matrix of marginal posterior edge probabilities; entry
 \verb{[i, j]} is the probability of the directed edge \code{j -> i}.
-\item \code{burn_in}: the burn‑in ratio used for posterior summarization.
+\item \code{burn_in}: the burn-in ratio used for posterior summarization.
 }
 
 Run metadata (\code{num.node}, \code{SampleSize}, \code{num_update}, \code{timeseries}) is

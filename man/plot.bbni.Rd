@@ -15,8 +15,8 @@
 The plot object (invisibly).
 }
 \description{
-Produces a trace plot of the log‑posterior over MCMC iterations. This method
-delegates to \code{\link[=plot_trace]{plot_trace()}}. For network visualisation, use \code{\link[=plot_bbni]{plot_bbni()}}.
+Produces a trace plot of the log-posterior over MCMC iterations. This method
+delegates to \code{\link[=plot_trace]{plot_trace()}}. For network visualization, use \code{\link[=plot_bbni]{plot_bbni()}}.
 }
 \examples{
 \dontrun{

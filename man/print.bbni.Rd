@@ -16,7 +16,7 @@
 }
 \description{
 The default display method for \code{bbni} objects. It provides
-a one‑line overview instead of a statistical summary; use
+a one-line overview instead of a statistical summary; use
 \code{summary()} for posterior statistics and \code{plot()} for trace plots.
 }
 \examples{

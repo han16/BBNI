@@ -12,7 +12,7 @@
 \item{threshold}{Numeric. Posterior probability threshold for counting
 strong edges.}
 
-\item{n_top}{Integer. Number of highest‑posterior edges to display and
+\item{n_top}{Integer. Number of highest-posterior edges to display and
 include in \code{top_edges}.}
 
 \item{...}{Additional arguments (ignored).}
